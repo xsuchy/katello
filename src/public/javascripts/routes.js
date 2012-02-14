@@ -204,6 +204,10 @@
   items_systems_path: function(options) {
   return Utils.build_path(0, ["/systems/items"], ["format"], arguments)
   },
+// items_subscriptions => /subscriptions/items(.:format)
+  items_subscriptions_path: function(options) {
+  return Utils.build_path(0, ["/subscriptions/items"], ["format"], arguments)
+  },
 // edit_gpg_key => /gpg_keys/:id/edit(.:format)
   edit_gpg_key_path: function(_id, options) {
   return Utils.build_path(1, ["/gpg_keys/", "/edit"], ["format"], arguments)
