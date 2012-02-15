@@ -181,6 +181,16 @@ module Pulp
         raise e
       end
 
+      def find_all repo_ids, yell_on_404 = false
+        ids = "id=#{repo_ids.join('&id=')}"
+        response = get(repository_path  + "/?#{ids}", self.default_headers)
+        body = response.body
+        JSON.parse(body).with_indifferent_access
+      rescue RestClient::ResourceNotFound => e
+        return nil if !yell_on_404
+        raise e
+      end
+
       # Get all the Repositories known by Pulp
       # currently filtering against only one groupid is supported in PULP
       def all groupids=nil, search_params = {}
@@ -274,7 +284,7 @@ module Pulp
         response = get(path, self.default_headers)
         parsed = JSON.parse(response.body)
         return parsed if parsed.empty?
-        return parsed.with_indifferent_access
+        return parsed.first.with_indifferent_access
       end
 
       def destroy repo_id

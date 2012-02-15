@@ -183,9 +183,8 @@ module Glue::Pulp::Repo
     self.clone_response = [Pulp::Repository.clone_repo(clone_from, self, "parent", cloned_filters)]
   end
 
-  def populate_from list
-    found = list.find{|repo|
-      repo["id"] == self.pulp_id}
+  def populate_from repos_map
+    found = repos_map[self.pulp_id]
     prepopulate(found) if found
     !found.nil?
   end
@@ -497,8 +496,7 @@ module Glue::Pulp::Repo
       history = Pulp::Repository.sync_history(pulp_id)
     end
     return [::PulpSyncStatus.new(:state => ::PulpSyncStatus::Status::NOT_SYNCED)] if (history.nil? or history.empty?)
-    statuses = history.sort_by{ |item| item[:finish_time] }.reverse
-    statuses.collect{|item| ::PulpSyncStatus.using_pulp_task(item)}
+    history.collect{|item| ::PulpSyncStatus.using_pulp_task(item)}
   end
 
   private
