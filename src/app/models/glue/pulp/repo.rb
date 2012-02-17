@@ -30,7 +30,7 @@ module Glue::Pulp::Repo
                       end
                     }
       lazy_accessor :groupid, :arch, :feed, :feed_cert, :feed_key, :feed_ca, :source, :package_count,
-                :clone_ids, :uri_ref, :last_sync, :relative_path, :preserve_metadata, :content_type,
+                :clone_ids, :uri_ref, :last_sync, :relative_path, :preserve_metadata, :content_type, :uri,
                 :initializer => lambda {
                   if pulp_id
                       pulp_repo_facts
@@ -48,7 +48,7 @@ module Glue::Pulp::Repo
     def save_repo_orchestration
       case orchestration_for
         when :create
-          queue.create(:name => "create pulp repo: #{self.name}", :priority => 2, :action => [self, :clone_or_create_repo])
+          pre_queue.create(:name => "create pulp repo: #{self.name}", :priority => 2, :action => [self, :clone_or_create_repo])
       end
     end
 
@@ -83,7 +83,7 @@ module Glue::Pulp::Repo
     self.clone_ids.each do |clone_id|
       repo = Repository.find_by_pulp_id(clone_id)
 
-      queue.create(
+      pre_queue.create(
         :name => "add filter '#{added_filter.pulp_id}' to repo: #{repo.id}",
         :priority => 2,
         :action => [repo, :set_filters, [added_filter.pulp_id]]
@@ -100,7 +100,7 @@ module Glue::Pulp::Repo
     self.clone_ids.each do |clone_id|
       repo = Repository.find_by_pulp_id(clone_id)
 
-      queue.create(
+      pre_queue.create(
         :name => "remove filter '#{removed_filter.pulp_id}' from repo: #{repo.id}",
         :priority => 2,
         :action => [repo, :del_filters, [removed_filter.pulp_id]]
@@ -146,7 +146,11 @@ module Glue::Pulp::Repo
     else
       #repo is not in the next environment yet, we have to clone it there
       key = EnvironmentProduct.find_or_create(to_env, self.product)
-      clone = Repository.create!(:environment_product => key, :clone_from => self, :cloned_content => self.content, :cloned_filters => filters_to_clone)
+      clone = Repository.create!(:environment_product => key,
+                                 :clone_from => self,
+                                 :cloned_content => self.content,
+                                 :cloned_filters => filters_to_clone,
+                                 :cp_label => self.cp_label)
 
       clone.index_packages
       clone.index_errata
@@ -219,18 +223,8 @@ module Glue::Pulp::Repo
   end
 
   def destroy_repo_orchestration
-    queue.create(:name => "remove product content : #{self.name}", :priority => 1, :action => [self, :del_content])
-    queue.create(:name => "delete pulp repo : #{self.name}",       :priority => 2, :action => [self, :destroy_repo])
-  end
-
-  # TODO: remove after pulp >= 0.0.401 get's released. There is this attribute
-  # directly in the repo API
-  def uri
-    if repo_base_path = AppConfig.pulp.url[/^(.*)api$/,1]
-      return "#{repo_base_path}repos/#{self.relative_path}"
-    else
-      raise "We expect #{AppConfig.pulp.url} to end with 'api' suffix"
-    end
+    pre_queue.create(:name => "remove product content : #{self.name}", :priority => 1, :action => [self, :del_content])
+    pre_queue.create(:name => "delete pulp repo : #{self.name}",       :priority => 2, :action => [self, :destroy_repo])
   end
 
   def get_params
@@ -327,6 +321,10 @@ module Glue::Pulp::Repo
   end
 
   def set_sync_schedule schedule
+    if self.sync_state == "waiting"
+        Pulp::Task.destroy(self.sync_status.uuid)
+    end
+
     if schedule
         Pulp::Repository.update_schedule(self.pulp_id, schedule)
     else
@@ -402,7 +400,7 @@ module Glue::Pulp::Repo
     history = self.sync_status
     return if history.nil? || history.state == ::PulpSyncStatus::Status::NOT_SYNCED
 
-    Pulp::Repository.cancel(self.pulp_id, history.uuid)
+    Pulp::Task.cancel(history.uuid)
   end
 
   def sync_finish

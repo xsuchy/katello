@@ -19,7 +19,7 @@
 %define modulename katello
 
 Name:           %{modulename}-selinux
-Version:        0.1.4
+Version:        0.1.5
 Release:        1%{?dist}
 Summary:        SELinux policy module supporting Katello
 
@@ -48,7 +48,7 @@ Requires:       selinux-policy >= 2.4.6-80
 %endif
 Requires(post):   /usr/sbin/semodule, /sbin/restorecon, /usr/sbin/setsebool, /usr/sbin/selinuxenabled
 Requires(postun): /usr/sbin/semodule, /sbin/restorecon
-Requires:       %{modulename}
+Requires:       %{modulename}-common
 
 %description
 SELinux policy module supporting Katello.
