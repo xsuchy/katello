@@ -62,6 +62,7 @@ KT.templates = function() {
                 return true;
             }
         });
+        KT.options.current_template = undefined;
         KT.options.template_tree.render_content("templates");
     },
     add_new_template = function(id, name) {
@@ -561,7 +562,8 @@ KT.template_renderer = function() {
     },
     details = function(t_id) {
         var html = "<ul>";
-        $.each([['products_', i18n.products], ['repos_', i18n.repos], ['packages_', i18n.packages], ['comps_', i18n.package_groups],
+        //bz 796239
+        $.each([/*['products_', i18n.products],*/ ['repos_', i18n.repos], ['packages_', i18n.packages], ['comps_', i18n.package_groups],
             ['distribution_', i18n.selected_distribution]],
             function(index, item_set) {
                 html += list_item(item_set[0] + t_id, item_set[1], true);
@@ -1229,7 +1231,7 @@ $(document).ready(function() {
 
     $("#modified_dialog").dialog({modal: true, width: 400, autoOpen: false});
 
-    KT.panel.list.set_extended_cb(KT.templates.reset_page);
+
 
     KT.options.templates = KT.template_breadcrumb["templates"].templates;
 
@@ -1241,8 +1243,10 @@ $(document).ready(function() {
                             enable_filter   :  false,
                             tab_change_cb   :  function(hash_id) {
                                 KT.templates.reset_page();
-                            }
+                            },
+                            expand_cb      :  KT.templates.reset_page
                         });
+    KT.options.content_tree.enableSearch();
 
     KT.options.template_tree = sliding_tree("template_tree", {
                             breadcrumb      :  KT.template_breadcrumb,
@@ -1278,4 +1282,5 @@ $(document).ready(function() {
             return i18n.leave_page.replace("$TEMPLATE",  KT.options.current_template.name);
         }
     };
+    $(window).trigger('hashchange');
 });

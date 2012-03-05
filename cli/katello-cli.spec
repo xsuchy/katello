@@ -18,7 +18,7 @@ Summary:       Client package for managing application life-cycle for Linux syst
 Group:         Applications/System
 License:       GPLv2
 URL:           http://www.katello.org
-Version:       0.1.56
+Version:       0.2.6
 Release:       1%{?dist}
 Source0:       %{name}-%{version}.tar.gz
 BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -61,13 +61,16 @@ install -d $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client
 install -d $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/api
 install -d $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/cli
 install -d $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/core
+install -d $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/utils
 install -pm 0644 bin/%{base_name} $RPM_BUILD_ROOT%{_bindir}/%{base_name}
+install -pm 0644 bin/%{base_name}-debug-certificates $RPM_BUILD_ROOT%{_bindir}/%{base_name}-debug-certificates
 install -pm 0644 etc/client.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{base_name}/client.conf
 install -pm 0644 src/%{base_name}/*.py $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/
 install -pm 0644 src/%{base_name}/client/*.py $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/
 install -pm 0644 src/%{base_name}/client/api/*.py $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/api/
 install -pm 0644 src/%{base_name}/client/cli/*.py $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/cli/
 install -pm 0644 src/%{base_name}/client/core/*.py $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/core/
+install -pm 0644 src/%{base_name}/client/utils/*.py $RPM_BUILD_ROOT%{python_sitelib}/%{base_name}/client/utils/
 
 
 %clean
@@ -75,6 +78,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files 
 %attr(755,root,root) %{_bindir}/%{base_name}
+%attr(755,root,root) %{_bindir}/%{base_name}-debug-certificates
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/%{base_name}/client.conf
 %doc README LICENSE
 #%{_mandir}/man8/%{base_name}.8*
@@ -85,6 +89,17 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Mar 02 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.3-1
+- 798264 - Katello debug collects certificate password files and some certs
+
+* Mon Feb 27 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.2-1
+- Pull in the latest translations
+
+* Wed Feb 22 2012 Mike McCune <mmccune@redhat.com> 0.2.1-1
+- version bump
+
+* Wed Feb 22 2012 Ivan Necas <inecas@redhat.com> 0.1.57-1
+- periodic build
 * Fri Feb 17 2012 Brad Buckingham <bbuckingham@redhat.com> 0.1.56-1
 - 794782: Add PyXML to the cli dependencies (bkearney@redhat.com)
 

@@ -147,6 +147,19 @@ class Product < ActiveRecord::Base
     end
   end
 
+  def total_package_count env
+    repoids = self.repos(env).collect{|r| r.pulp_id}
+    result = Glue::Pulp::Package.search('*', 0, 1, repoids)
+    result.length > 0 ? result.total : 0
+  end
+
+  def has_filters? env
+    return false unless env == organization.library
+    return true if filters.count > 0
+    repos(organization.library).any?{|repo| repo.has_filters?}
+
+  end
+
   #Permissions
   scope :all_readable, lambda {|org| ::Provider.readable(org).joins(:provider)}
   scope :readable, lambda{|org| all_readable(org).with_enabled_repos_only(org.library)}
@@ -179,7 +192,6 @@ class Product < ActiveRecord::Base
     ret["gpg_key_name"] = gpg_key ? gpg_key.name : ""
     ret
   end
-
 
   protected
 

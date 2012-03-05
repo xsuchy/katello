@@ -22,6 +22,12 @@
                    //  3  vertical 1 px seperators (borders), and 448-3 isn't divisible by 4.  We come up 1 px short
   }
   
+  .filter_warning_icon {
+        width: 16px;
+        @include action-icon($warning_icon_triangle);
+        margin-right: 4px;
+        margin-top: 1px;
+  }
 
 
   #edit_changeset_icon {
@@ -119,6 +125,7 @@
       .locked {
         outline: 2px solid gray;
       }
+
     }
     .locked_breadcrumb_filter {
       @extend breadcrumb_filter;
@@ -152,10 +159,6 @@
   .product_arch {
     font-size: 11px;
     display: inline;
-  }
-  .product-icon {
-    padding-left: 18px;
-    vertical-align:middle;
   }
   .custom-product-sprite {
     @include product-sprite;
@@ -289,7 +292,7 @@
   }
 
   #template_tree {
-    $template-height: 385px;
+    $template-height: 420px;
     $template-width: 450px;
     width: $template-width;
      .slider {
@@ -429,6 +432,13 @@
     label {
       font-weight: normal;
       color: $text_color;
+    }
+  }
+  .promotions {
+    .left {
+      #new {
+        width: 16em !important;
+      }
     }
   }
 }

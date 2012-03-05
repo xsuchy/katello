@@ -2,7 +2,7 @@
 %global homedir %{_datarootdir}/katello/install
 
 Name:           katello-configure
-Version:        0.1.65
+Version:        0.2.7
 Release:        1%{?dist}
 Summary:        Configuration tool for Katello
 
@@ -13,9 +13,10 @@ Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Requires:       puppet >= 2.6.6
-Requires:       wget
+Requires:       coreutils shadow-utils wget
 Requires:       katello-certs-tools
-Requires:       nss-tools
+Requires:       nss-tools openssl
+Requires:       policycoreutils-python
 BuildRequires:  /usr/bin/pod2man
 
 BuildArch: noarch
@@ -56,6 +57,38 @@ rm -rf %{buildroot}
 %{_mandir}/man1/katello-configure.1*
 
 %changelog
+* Fri Mar 02 2012 Martin Bačovský <mbacovsk@redhat.com> 0.2.7-1
+- 799138 - katello-configure --deployment=headpin fails (mbacovsk@redhat.com)
+
+* Fri Mar 02 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.6-1
+- 798454 - SSLCACertificateFile not set properly
+- 761314 - Make sure katello-agent communicates with ssl
+- 761314 - Make sure katello-agent communicates with ssl
+
+* Tue Feb 28 2012 Martin Bačovský <mbacovsk@redhat.com> 0.2.5-1
+- 761314 - Make sure katello-agent communicates with ssl (mbacovsk@redhat.com)
+- 781505 - randomize default admin password for Pulp (lzap+git@redhat.com)
+
+* Mon Feb 27 2012 Martin Bačovský <mbacovsk@redhat.com> 0.2.4-1
+- 761314 - Make sure katello-agent communicates with ssl (mbacovsk@redhat.com)
+
+* Mon Feb 27 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.3-1
+- 790835 - restart goferd after rhsm configuration and fix
+- 786572 - elasticsearch - reduce heap to 256m
+
+* Mon Feb 27 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.2-1
+- 761314 - Make sure katello-agent communicates with ssl
+- 790835 - Create bootstrap RPM package with cons. cert
+- 795869 org_name is not overriding itself in db_seed correctly
+- 786978 - updating puppet to accept sam/cfse/headpin/katello and make the url
+  respond accordingly
+
+* Wed Feb 22 2012 Mike McCune <mmccune@redhat.com> 0.2.1-1
+- version bump
+
+* Wed Feb 22 2012 Ivan Necas <inecas@redhat.com> 0.1.66-1
+- periodic build
+
 * Fri Feb 10 2012 Lukas Zapletal <lzap+git@redhat.com> 0.1.64-1
 - 789290 - fixing progress bars with new puppet
 - 789290 - updating log file sizes

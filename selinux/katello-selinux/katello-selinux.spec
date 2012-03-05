@@ -19,7 +19,7 @@
 %define modulename katello
 
 Name:           %{modulename}-selinux
-Version:        0.1.5
+Version:        0.2.2
 Release:        1%{?dist}
 Summary:        SELinux policy module supporting Katello
 
@@ -46,7 +46,7 @@ Requires:       selinux-policy >= %{selinux_policyver}
 %if 0%{?rhel} == 5
 Requires:       selinux-policy >= 2.4.6-80
 %endif
-Requires(post):   /usr/sbin/semodule, /sbin/restorecon, /usr/sbin/setsebool, /usr/sbin/selinuxenabled
+Requires(post):   /usr/sbin/semodule, /sbin/restorecon, /usr/sbin/setsebool, /usr/sbin/selinuxenabled, /usr/sbin/semanage
 Requires(postun): /usr/sbin/semodule, /sbin/restorecon
 Requires:       %{modulename}-common
 
@@ -122,6 +122,12 @@ fi
 %attr(0755,root,root) %{_sbindir}/%{name}-enable
 
 %changelog
+* Mon Feb 27 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.2-1
+- 761314 - Make sure katello-agent communicates with ssl
+
+* Wed Feb 22 2012 Mike McCune <mmccune@redhat.com> 0.2.1-1
+- 790507 - fixing httpds SAM denials of mod_proxy (lzap+git@redhat.com)
+
 * Mon Jan 30 2012 Lukas Zapletal <lzap+git@redhat.com> 0.1.4-1
 - selinux - adding requirement for the main package
 - selinux - adding rh header

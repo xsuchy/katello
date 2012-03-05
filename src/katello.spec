@@ -16,7 +16,7 @@
 %global confdir deploy/common
 
 Name:           katello
-Version:        0.1.242
+Version:        0.2.6
 Release:        1%{?dist}
 Summary:        A package for managing application life-cycle for Linux systems
 BuildArch:      noarch
@@ -354,6 +354,86 @@ if [ $1 -eq 0 ] ; then
 fi
 
 %changelog
+* Mon Mar 05 2012 Martin Bačovský <mbacovsk@redhat.com> 0.2.6-1
+- 798264 - Katello debug collects certificate password files and some certs
+  (mbacovsk@redhat.com)
+- fixing syntax error (jsherril@redhat.com)
+- 796264 - adding code to hopefully mitigate pulp timeouts during promotion
+  (jsherril@redhat.com)
+- 795780 - Sync status page will not appropriately display completed and queued
+  repositories and show progress for syncs that are started on queued
+  repositories. (ehelms@redhat.com)
+- 786762 - Sync status in the UI will now be updated properly whenever a user
+  cancels and restarts a sync. (ehelms@redhat.com)
+- 790143 - Fixes display of architecture in left hand list view of systems to
+  match that of the system details. (ehelms@redhat.com)
+- 786495 - When syncing repositories, UI will now show updated size and package
+  counts for repositories and products. (ehelms@redhat.com)
+
+* Fri Mar 02 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.5-1
+- 740931 - Long name issue with GPG key names
+- 740931 - fixed a long name/desc role ui bug
+- 796239 - removing system template product association from UI
+- Fixed some unit test issues
+- Adding some basic LDAP support to katello.
+- 767574 - Promotion page - code to indicate warnings if products/repos have
+  filters applied on them
+- 798324 - UI permission creation widget will now handle verbs that have no
+  tags properly.
+- 787979 - auto-heal checkbox only enabled if system editable
+- 788329 - fixing env selector not initializing properly on new user page
+- 787696 - removed incorrectly calling _() in javascript
+- 798007 - adding logging information for statuses
+- 798737 - Promotion of only distribution fails
+- Gemfile - temporarily removing the tire and hashr gem updates
+- 795825 - Sync Mgmt - fix display when state is 'waiting'
+- 796360 - fixing issue where system install errata button was clickable
+- 783577 - removing template with unsaved changes should not prompt for saving
+- 798327 - fixing stray space in debug certificate download
+- 796740 - Fixes unhelpful message when attempting to create a new system with
+  no environments in the current organization.
+- 754873 - fixing issue where product sync bar would continually go to 100
+- 798299 - fix reporting errors from Pulp
+
+* Wed Feb 29 2012 Brad Buckingham <bbuckingham@redhat.com> 0.2.4-1
+- 789533 - upgrading to tire 0.3.13pre with additional hashr dependency
+  (bbuckingham@redhat.com)
+- 798007 - fixing trivial error for our mem dump debug controller
+  (lzap+git@redhat.com)
+- 795832 - removing package download link as well as some hardcoded package
+  data (jsherril@redhat.com)
+- 787696, 796753 - localization corrections of roles, plus instances of
+  embedded strings, plus gettext:find ran (thomasmckay@redhat.com)
+- 787966 - preventing changeset history details from being jumbled if no
+  description is set (jsherril@redhat.com)
+- 796964 - The 'Sync Product' permission no longer allows a user to edit a
+  repository. (ehelms@redhat.com)
+- 773279 - show compliance status and date in systems report
+  (inecas@redhat.com)
+- 796573 - promotion searchable items now showing add/remove correctly
+  (jsherril@redhat.com)
+- removing some logging (jsherril@redhat.com)
+- 790254 - fixing issue where failed changesets would show as pending on
+  dashboard (jsherril@redhat.com)
+- 740365 - fixing sort on systems page (jsherril@redhat.com)
+- 797914 - fixing not being able to edit/view roles (jsherril@redhat.com)
+
+* Mon Feb 27 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.3-1
+- 751843 - adding counts go promotion search pages
+
+* Fri Feb 24 2012 Mike McCune <mmccune@redhat.com> 0.2.2-1
+- rebuild 
+* Wed Feb 22 2012 Mike McCune <mmccune@redhat.com> 0.2.1-1
+- 796268 - proper error message when erratum was not found
+  (tstrachota@redhat.com)
+- 770414 - Fix for remove role button moving to next line when clicked.
+  (jrist@redhat.com)
+- 795862 - delete assignment to activation keys on product deletion
+  (inecas@redhat.com)
+- 770693 - handle no reference in errata (inecas@redhat.com)
+
+* Wed Feb 22 2012 Ivan Necas <inecas@redhat.com> 0.1.243-1
+- periodic build
 * Thu Feb 16 2012 Ivan Necas <inecas@redhat.com> 0.1.239-1
 - 789456 - fix problem with unicode (inecas@redhat.com)
 

@@ -64,6 +64,11 @@ class Repository < ActiveRecord::Base
     !(redhat?)
   end
 
+  def has_filters?
+    return false unless environment.library?
+    filters.count > 0 || product.filters.count > 0
+  end
+
   scope :enabled, where(:enabled => true)
 
   scope :readable, lambda { |env|
@@ -73,6 +78,12 @@ class Repository < ActiveRecord::Base
       #none readable
       where("1=0")
     end
+  }
+
+  scope :editable_in_library, lambda {|org|
+    joins(:environment_product).
+        where("environment_products.environment_id" => org.library.id).
+        where("environment_products.product_id in (#{Product.editable(org).select("products.id").to_sql})")
   }
 
   scope :readable_in_org, lambda {|org, *skip_library|

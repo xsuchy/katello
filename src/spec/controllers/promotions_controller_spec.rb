@@ -30,6 +30,7 @@ describe PromotionsController do
     before (:each) do
       @org = new_test_org
       controller.stub(:current_organization).and_return(@org)
+      Glue::Pulp::Repos.stub!(:prepopulate!).and_return([])
       @env = @org.library
       
     end
@@ -77,7 +78,9 @@ describe PromotionsController do
     end
 
     it "should be successful when requesting packages" do
-      Glue::Pulp::Package.stub(:search).and_return(["test"])
+      results = ['test']
+      results.stub(:total).and_return(1)
+      Glue::Pulp::Package.stub(:search).and_return(results)
       get 'packages', :id=>@env.name, :product_id => @product.id
       response.should be_success
       assigns(:environment).should == @env
@@ -85,7 +88,9 @@ describe PromotionsController do
     end
 
     it "should be successful when requesting errata" do
-      Glue::Pulp::Errata.stub(:search).and_return(["test"])
+      results = ['test']
+      results.stub(:total).and_return(1)
+      Glue::Pulp::Errata.stub(:search).and_return(results)
       get 'errata', :id=>@env.name, :product_id => @product.id
       response.should be_success
       assigns(:environment).should == @env
@@ -115,6 +120,7 @@ describe "rules" do
       @env1 = @organization.library
       @env2 = KTEnvironment.create!(:name=>"FOO", :prior => @env1, :organization=>@organization)
       @env3 = KTEnvironment.create!(:name=>"FOO2", :prior => @env2, :organization=>@organization)
+      Glue::Pulp::Repos.stub!(:prepopulate!).and_return([])
     end
 
     describe "GET index with changesets readable" do

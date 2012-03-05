@@ -21,7 +21,7 @@ import threading
 import calendar
 from xml.utils import iso8601
 from katello.client.api.task_status import TaskStatusAPI, SystemTaskStatusAPI
-
+from katello.client.utils.encoding import u_str
 
 
 # output formatting -----------------------------------------------------------
@@ -49,7 +49,6 @@ class Printer:
         self._output_mode = output_mode
 
     def _printDivLine(self, width):
-        #print '+' + '-'*(width-2) + '+'
         print '-'*width
 
     def _printHeader(self, heading, grep_mode, widths={}):
@@ -156,13 +155,13 @@ class Printer:
             if not col['attr_name'] in item:
                 continue
 
-            if len(str(col['value'])) > 0:
+            if len(u_str(col['value'])) > 0:
                 value = col['value']
             else:
                 value = item[col['attr_name']]
             if not col['multiline']:
                 output = format_date(value) if col['time_format'] else value
-                print (unicode("{0:<" + str(colWidth + 1) + "} {1}")).format(self.u_str(col['name']) + ":", output)
+                print ("{0:<" + u_str(colWidth + 1) + "} {1}").format(col['name'] + ":", output)
                 # +1 to account for the : after the column name
             else:
                 print indent+col['name']+":"
@@ -194,7 +193,8 @@ class Printer:
                 continue
             if col['multiline']:
                 value = text_to_line(value)
-            print self.u_str(value).ljust(width),
+
+            print u_str(value).ljust(width),
             print self._delim,
 
 
@@ -203,29 +203,20 @@ class Printer:
         #return widths
         for col in self._columns:
             key = col['attr_name']
-            widths[key] = len(self.u_str(col['name']))+1
+            widths[key] = len(u_str(col['name']))+1
             for item in items:
                 if not key in item: continue
-                value = self.u_str(item[key])
+                value = u_str(item[key])
                 if widths[key] < len(value):
                     widths[key] = len(value)+1
 
         return widths
 
-    def u_str(self, value):
-        """
-        Casts value to string unless it's unicode.
-        There is a problem using str on unicode values.
-        """
-        if not isinstance(value, unicode):
-            return str(value)
-        else:
-            return value
 
     def _minColumnWidth(self):
         width = 0
         for col in self._columns:
-            width = len(self.u_str(col['name'])) if (len(self.u_str(col['name'])) > width) else width
+            width = len(u_str(col['name'])) if (len(u_str(col['name'])) > width) else width
 
         return width
 
@@ -295,7 +286,7 @@ def is_valid_record(rec):
 # indent block of text --------------------------------------------------------
 def indent_text(text, indent="\t"):
     if text == None:
-        text = str(None)
+        text = u_str(None)
 
     if isinstance(text, (list)):
         glue = "\n"+indent
@@ -307,7 +298,7 @@ def indent_text(text, indent="\t"):
 # converts block of text to one line ------------------------------------------
 def text_to_line(text, glue=" "):
     if text == None:
-        text = str(None)
+        text = u_str(None)
 
     if isinstance(text, (list)):
         return glue.join(text)

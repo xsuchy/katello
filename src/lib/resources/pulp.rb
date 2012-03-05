@@ -50,7 +50,9 @@ module Pulp
     self.ca_cert_file = cfg.ca_cert_file
 
     def self.default_headers
-      {'accept' => 'application/json', 'content-type' => 'application/json'}.merge(::User.pulp_oauth_header)
+      {'accept' => 'application/json',
+       'accept-language' => I18n.locale,
+       'content-type' => 'application/json'}.merge(::User.pulp_oauth_header)
     end
 
     # some old Pulp API need text/plain content type
@@ -129,6 +131,8 @@ module Pulp
       def find(errata_id)
         response = get(errata_path + errata_id + "/", self.default_headers)
         JSON.parse(response.body).with_indifferent_access
+      rescue JSON::ParserError => e
+        nil
       end
 
       def errata_path
@@ -277,8 +281,22 @@ module Pulp
         path = Repository.repository_path + repo_id + "/sync/"
         response = get(path, self.default_headers)
         parsed = JSON.parse(response.body)
+
         return parsed if parsed.empty?
-        return parsed.first.with_indifferent_access
+
+        parsed.sort!{|a,b|
+          if a['finish_time'].nil? && b['finish_time'].nil?
+            b['start_time'] <=> a['start_time']
+          elsif a['finish_time'].nil?
+            1
+          elsif b['finish_time'].nil?
+            -1
+          else
+            b['finish_time'] <=> a['finish_time'] 
+          end
+        }
+
+        return [parsed.first.with_indifferent_access]
       end
 
       def destroy repo_id
