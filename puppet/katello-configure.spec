@@ -2,7 +2,7 @@
 %global homedir %{_datarootdir}/katello/install
 
 Name:           katello-configure
-Version:        0.2.7
+Version:        0.2.15
 Release:        1%{?dist}
 Summary:        Configuration tool for Katello
 
@@ -17,7 +17,8 @@ Requires:       coreutils shadow-utils wget
 Requires:       katello-certs-tools
 Requires:       nss-tools openssl
 Requires:       policycoreutils-python
-BuildRequires:  /usr/bin/pod2man
+BuildRequires:  /usr/bin/pod2man /usr/bin/erb
+BuildRequires:  findutils puppet >= 2.6.6
 
 BuildArch: noarch
 
@@ -28,6 +29,11 @@ Provides katello-configure script which configures Katello installation.
 %setup -q
 
 %build
+#check syntax for all puppet scripts
+find -name '*.pp' | xargs -n 1 -t puppet --parseonly
+
+#check for puppet erb syntax errors
+find modules/ -name \*erb | xargs aux/check_erb
 
 THE_VERSION=%version perl -000 -ne 'if ($X) { s/^THE_VERSION/$ENV{THE_VERSION}/; s/\s+CLI_OPTIONS/$C/; s/^CLI_OPTIONS_LONG/$X/; print; next } ($t, $l, $v, $d) = /^#\s*(.+?\n)(.+\n)?(\S+)\s*=\s*(.*?)\n+$/s; $l =~ s/^#\s*//gm; $l = $t if not $l; ($o = $v) =~ s/_/-/g; $x .= qq/=item --$o=<\U$v\E>\n\n$l\nThe default value is "$d".\n\n/; $C .= "\n        [ --$o=<\U$v\E> ]"; $X = $x if eof' default-answer-file man/katello-configure.pod \
 	| /usr/bin/pod2man --name=%{name} --official --section=1 --release=%{version} - man/katello-configure.man1
@@ -57,6 +63,40 @@ rm -rf %{buildroot}
 %{_mandir}/man1/katello-configure.1*
 
 %changelog
+* Tue Mar 20 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.15-1
+- 802346 - wait for postgres to come up in puppet
+
+* Mon Mar 19 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.14-1
+- Revert "802346 - wait for postgres to come up in puppet"
+
+* Mon Mar 19 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.13-1
+- 802346 - adding puppet syntax check to the spec
+- 802346 - wait for postgres to come up in puppet
+- Revert "802346 - wait until PostgreSQL accepts connections"
+- 802252 - adding missing Ruby build dependency
+
+* Mon Mar 12 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.12-1
+- 802346 - wait until PostgreSQL accepts connections
+- pchalupa's public key
+- 802252 - Adding ERB syntax checker to the SPEC
+- 802252 - Unable to install Katello on Puppet 2.7
+
+* Fri Mar 09 2012 Mike McCune <mmccune@redhat.com> 0.2.11-1
+- periodic rebuild
+* Tue Mar 06 2012 Mike McCune <mmccune@redhat.com> 0.2.10-1
+- 788708 - moving the var/www/html/pub dir creation a bit higher up
+  (mmccune@redhat.com)
+
+* Tue Mar 06 2012 Mike McCune <mmccune@redhat.com> 0.2.9-1
+- Keep the permissions for the candlepin.conf file the same as the spec file
+  (bkearney@redhat.com)
+
+* Tue Mar 06 2012 Martin Bačovský <mbacovsk@redhat.com> 0.2.8-1
+- 800318 - installer fails: Working directory '/var/www/html/pub' does not
+  exist (mbacovsk@redhat.com)
+- 790835 - fixing deployment url and goferd restart in bootstrap
+  (lzap+git@redhat.com)
+
 * Fri Mar 02 2012 Martin Bačovský <mbacovsk@redhat.com> 0.2.7-1
 - 799138 - katello-configure --deployment=headpin fails (mbacovsk@redhat.com)
 

@@ -305,7 +305,9 @@ describe Changeset do
         @clone.stub(:has_package?).and_return(false)
         @clone.stub(:has_erratum?).and_return(false)
         @clone.stub(:has_distribution?).and_return(false)
-        @clone.stub(:generate_metadata)
+        @clone.stub(:generate_metadata).and_return({})
+	PulpTaskStatus.stub(:wait_for_tasks)
+
         @repo.stub(:clone_ids).and_return([])
         @repo.stub(:get_clone).and_return(@clone)
         @repo.stub(:get_cloned_in).and_return(nil)
@@ -323,12 +325,24 @@ describe Changeset do
         @changeset.stub(:wait_for_tasks).and_return(nil)
         @changeset.stub(:calc_dependencies).and_return([])
 
+        @tpl1 = SystemTemplate.create!(:name => "template_1", :environment => @organization.library)
+
         Glue::Pulp::Package.stub(:index_packages).and_return(true)
         Glue::Pulp::Errata.stub(:index_errata).and_return(true)
 
       end
 
       it "should fail if the product is not in the review phase" do
+        lambda {@changeset.promote}.should raise_error
+      end
+
+      it "should fail if the product for repo from template is not in the env or changeset" do
+        @changeset.state = Changeset::REVIEW
+        @changeset.repos = []
+        @changeset.products = []
+        @tpl1.repositories = [@repo]
+        @changeset.system_templates = [@tpl1]
+        @environment.stub(:products).and_return([])
         lambda {@changeset.promote}.should raise_error
       end
 
@@ -396,6 +410,7 @@ describe Changeset do
       it "should regenerate metadata of changed repos" do
         @changeset.stub(:affected_repos).and_return([@repo])
         @clone.should_receive(:generate_metadata)
+        PulpTaskStatus.stub(:wait_for_tasks)
         @changeset.state = Changeset::REVIEW
 
         @changeset.promote(false)

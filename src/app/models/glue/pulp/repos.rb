@@ -48,7 +48,8 @@ module Glue::Pulp::Repos
 
   def self.repo_path_from_content_path(environment, content_path)
     content_path = content_path.sub(/^\//, "")
-    "#{environment.organization.name}/#{environment.name.gsub(/[^-\w]/,"_")}/#{content_path}"
+    path_prefix = [environment.organization.name, environment.name].map {|x| x.gsub(/[^-\w]/,"_") }.join("/")
+    "#{path_prefix}/#{content_path}"
   end
 
   # create content for custom repo
@@ -320,7 +321,9 @@ module Glue::Pulp::Repos
     end
 
     def sync_size
-      size = self.repos(library).inject(0) { |sum,v| sum + v.sync_status.progress.total_size }
+      self.repos(library).inject(0) { |sum, v| 
+        sum + v.sync_status.progress.total_size 
+      }
     end
 
     def last_sync

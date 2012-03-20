@@ -16,7 +16,7 @@
 %global confdir deploy/common
 
 Name:           katello
-Version:        0.2.6
+Version:        0.2.14
 Release:        1%{?dist}
 Summary:        A package for managing application life-cycle for Linux systems
 BuildArch:      noarch
@@ -342,9 +342,9 @@ fi
 
 %pre common
 # Add the "katello" user and group
-getent group %{name} >/dev/null || groupadd -r %{name}
+getent group %{name} >/dev/null || groupadd -r %{name} -g 182
 getent passwd %{name} >/dev/null || \
-    useradd -r -g %{name} -d %{homedir} -s /sbin/nologin -c "Katello" %{name}
+    useradd -r -g %{name} -d %{homedir} -u 182 -s /sbin/nologin -c "Katello" %{name}
 exit 0
 
 %preun common
@@ -354,6 +354,37 @@ if [ $1 -eq 0 ] ; then
 fi
 
 %changelog
+* Thu Mar 15 2012 Ivan Necas <inecas@redhat.com> 0.2.14-1
+- periodic build
+* Tue Mar 13 2012 Ivan Necas <inecas@redhat.com> 0.2.13-1
+- periodic build
+* Tue Mar 13 2012 Ivan Necas <inecas@redhat.com> 0.2.11-1
+- periodic build
+
+* Mon Mar 12 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.10-1
+- 798772 - fix conversion to local timezone
+- 798376 - fix problem with discovery process
+- 790063 - search - few more mods for consistency
+
+* Fri Mar 09 2012 Mike McCune <mmccune@redhat.com> 0.2.9-1
+- periodic rebuild 
+* Tue Mar 06 2012 Mike McCune <mmccune@redhat.com> 0.2.7-1
+- Was accidentally hiding login button if ldap was enabled (jomara@redhat.com)
+- 788008 - do not attempt to poll errata status when user does not have edit
+  permission (thomasmckay@redhat.com)
+- Adding LDAP fencing for change email, change password and forgot password
+  (jomara@redhat.com)
+- 798706 - making promotions block on repodata generation for non-complete repo
+  promotions (jsherril@redhat.com)
+- 787305 - Fix for nasty lines when details are present in notices.
+  (jrist@redhat.com)
+- 796852, 789533 - search - update to handle - search queries
+  (bbuckingham@redhat.com)
+- 794799 - disabling the ability to delete environments that are not the last
+  in a promotion path (jsherril@redhat.com)
+- 782022 - adding permissions to packages and errata controllers
+  (jsherril@redhat.com)
+
 * Mon Mar 05 2012 Martin Bačovský <mbacovsk@redhat.com> 0.2.6-1
 - 798264 - Katello debug collects certificate password files and some certs
   (mbacovsk@redhat.com)

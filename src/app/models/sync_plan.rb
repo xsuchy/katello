@@ -18,6 +18,7 @@ class SyncPlan < ActiveRecord::Base
                 :display_attrs=>[:name, :sync_date, :description, :interval]
 
   mapping do
+    indexes :name, :type => 'string', :analyzer => :keyword
     indexes :name_sort, :type => 'string', :index => :not_analyzed
     indexes :sync_date, :type=>'date'
   end
@@ -44,21 +45,33 @@ class SyncPlan < ActiveRecord::Base
 
   scope :readable, lambda { |org| ::Provider.any_readable?(org)? where(:organization_id => org.id ) : where("0 = 1") }
 
+  before_save :reassign_sync_plan_to_products
+
+  def reassign_sync_plan_to_products
+    self.products.each &:save # triggers orchestration in products
+  end
 
   def validate_sync_date
     errors.add :base, _("Start Date and Time can't be blank") if self.sync_date.nil?
+  end
+
+  def zone_converted 
+     #convert time to local timezone
+     self.sync_date.localtime.to_datetime
   end
 
   def plan_day
     WEEK_DAYS[self.sync_date.strftime('%e').to_i]
   end
 
-  def plan_date
-    self.sync_date.nil? ? '' : self.sync_date.strftime('%m/%d/%Y')
+  def plan_date localtime=true
+    date_obj = localtime ? self.zone_converted : self.sync_date
+    date_obj.strftime('%m/%d/%Y')
   end
 
-  def plan_time
-    self.sync_date.nil? ? '' : self.sync_date.strftime('%I:%M %p')
+  def plan_time localtime=true
+    date_obj = localtime ? self.zone_converted : self.sync_date
+    date_obj.strftime('%I:%M %p')
   end
 
   def schedule_format

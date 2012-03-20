@@ -11,9 +11,10 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 
 require_dependency "resources/pulp"
+require "util/search"
+
 class Glue::Pulp::Package < Glue::Pulp::SimplePackage
   attr_accessor :id, :download_url, :checksum, :license, :group, :filename, :requires,  :provides, :description, :size, :buildhost, :repoids
-
 
   def self.find id
     package_attrs = Pulp::Package.find(id)
@@ -69,11 +70,14 @@ class Glue::Pulp::Package < Glue::Pulp::SimplePackage
     }
   end
 
-  def self.name_search query, repoids=nil, number=15, sort=[:nvrea_sort, "ASC"]
+  def self.name_search query, repoids=nil, number=15
     return [] if !Tire.index(self.index).exists?
-     start = 0
-     query = "name:#{query}"
-     search = Tire.search self.index do
+    start = 0
+
+    query = Katello::Search::filter_input query
+    query = "name:#{query}"
+
+    search = Tire.search self.index do
       fields [:name]
       query do
         string query
@@ -82,22 +86,34 @@ class Glue::Pulp::Package < Glue::Pulp::SimplePackage
       if repoids
         filter :terms, :repoids => repoids
       end
-     end
-     to_ret = []
-     search.results.each{|pkg|
-        to_ret << pkg.name if !to_ret.include?(pkg.name)
-        break if to_ret.size == number
-     }
-     return to_ret
+    end
+    to_ret = []
+    search.results.each{|pkg|
+       to_ret << pkg.name if !to_ret.include?(pkg.name)
+       break if to_ret.size == number
+    }
+    return to_ret
   end
 
   def self.search query, start, page_size, repoids=nil, sort=[:nvrea_sort, "ASC"]
     return [] if !Tire.index(self.index).exists?
-    query_down = query.downcase
-    query = "name:#{query}" if AppConfig.simple_search_tokens.any?{|s| !query_down.match(s)}
+    all_rows = false
+
+    if query.blank?
+      all_rows = true
+    else
+      query = Katello::Search::filter_input query
+      query_down = query.downcase
+      query = "nvrea:#{query}" if AppConfig.simple_search_tokens.any?{|s| !query_down.match(s)}
+    end
+
     search = Tire.search self.index do
       query do
-        string query
+        if all_rows
+          all
+        else
+          string query
+        end
       end
 
       if page_size > 0
@@ -108,7 +124,7 @@ class Glue::Pulp::Package < Glue::Pulp::SimplePackage
         filter :terms, :repoids => repoids
       end
 
-      sort { by sort[0], sort[1] }
+      sort { by sort[0], sort[1] } unless !all_rows
     end
     return search.results
   rescue

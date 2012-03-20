@@ -29,6 +29,7 @@ class Changeset < ActiveRecord::Base
                 :display_attrs=>[:name, :description, :package, :errata, :product, :repo, :system_template, :user]
 
   mapping do
+    indexes :name, :type => 'string', :analyzer => :keyword
     indexes :name_sort, :type => 'string', :index => :not_analyzed
   end
 
@@ -116,6 +117,13 @@ class Changeset < ActiveRecord::Base
     raise _("Cannot promote the changset '%s' because it is not in the review phase.") % self.name if self.state != Changeset::REVIEW
     #check for other changesets promoting
     raise _("Cannot promote the changeset '%s' while another changeset (%s) is being promoted.") % [self.name, self.environment.promoting.first.name] if self.environment.promoting_to?
+    # check that solitare repos in the changeset and its templates 
+    # will have its associated product in the env as well after promotion
+    repos_to_be_promoted.each do |repo|
+      if not self.environment.products.to_a.include? repo.product and not products_to_be_promoted.include? repo.product
+        raise _("Cannot promote the changset '%s' because the repo '%s' does not belong to any promoted product.") % [self.name, repo.name]
+      end
+    end
 
     self.state = Changeset::PROMOTING
     self.save!
@@ -287,7 +295,7 @@ class Changeset < ActiveRecord::Base
     promote_distributions from_env, to_env
     update_progress! '100'
 
-    generate_metadata from_env, to_env
+    PulpTaskStatus::wait_for_tasks generate_metadata from_env, to_env
 
     self.promotion_date = Time.now
     self.state = Changeset::PROMOTED
@@ -455,9 +463,10 @@ class Changeset < ActiveRecord::Base
   end
 
   def generate_metadata from_env, to_env
-    affected_repos.each do |repo|
+    async_tasks = affected_repos.collect do  |repo|
         repo.get_clone(to_env).generate_metadata
     end
+    async_tasks
   end
 
   def uniquify_artifacts
@@ -606,5 +615,18 @@ class Changeset < ActiveRecord::Base
       :user=> self.task_status.nil? ? "" : self.task_status.user.username
     }
   end
+
+  def repos_to_be_promoted
+    repos = self.repos || []
+    repos += self.system_templates.map{|tpl| tpl.repos_to_be_promoted}.flatten(1)
+    return repos.uniq
+  end
+
+  def products_to_be_promoted
+    products = self.products || []
+    products += self.system_templates.map{|tpl| tpl.products_to_be_promoted}.flatten(1)
+    return products.uniq
+  end
+
 
 end

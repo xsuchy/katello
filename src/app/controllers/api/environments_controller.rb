@@ -15,7 +15,6 @@ class Api::EnvironmentsController < Api::ApiController
   before_filter :find_organization, :only => [:index, :create]
   before_filter :find_environment, :only => [:show, :update, :destroy, :repositories]
   before_filter :authorize
-
   def rules
     index_rule = lambda{@organization.readable? || @organization.any_systems_registerable?}
     manage_rule = lambda{@organization.environments_manageable?}
@@ -29,6 +28,17 @@ class Api::EnvironmentsController < Api::ApiController
       :repositories => view_rule
     }
   end
+
+
+  def param_rules
+    manage_match =  {:environment =>  ["name", "description", "prior" ]}
+
+    {
+      :create =>manage_match,
+      :update => manage_match
+    }
+  end
+
 
   def index
     query_params[:organization_id] = @organization.id
@@ -56,8 +66,13 @@ class Api::EnvironmentsController < Api::ApiController
   end
 
   def destroy
-    @environment.destroy
-    render :text => _("Deleted environment '#{params[:id]}'"), :status => 200
+    if @environment.confirm_last_env
+      @environment.destroy
+      render :text => _("Deleted environment '#{params[:id]}'"), :status => 200
+    else
+      raise HttpErrors::BadRequest,
+            _("Environment #{@environment.name} has a successor. Only the last environment on a path can be deleted.")
+    end
   end
 
   def repositories

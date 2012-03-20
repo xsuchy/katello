@@ -18,7 +18,7 @@ Summary:       Client package for managing application life-cycle for Linux syst
 Group:         Applications/System
 License:       GPLv2
 URL:           http://www.katello.org
-Version:       0.2.6
+Version:       0.2.14
 Release:       1%{?dist}
 Source0:       %{name}-%{version}.tar.gz
 BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -89,6 +89,20 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Mar 19 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.14-1
+- 803441 - fix cli unit test for org subscriptions
+
+* Thu Mar 15 2012 Ivan Necas <inecas@redhat.com> 0.2.13-1
+- priodic build
+
+* Tue Mar 13 2012 Ivan Necas <inecas@redhat.com> 0.2.12-1
+- periodic build
+
+* Mon Mar 12 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.10-1
+- 801786 - putting client.conf back to the RPM
+
+* Fri Mar 09 2012 Mike McCune <mmccune@redhat.com> 0.2.9-1
+- periodic rebuild
 * Fri Mar 02 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.3-1
 - 798264 - Katello debug collects certificate password files and some certs
 

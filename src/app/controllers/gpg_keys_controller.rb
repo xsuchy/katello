@@ -47,9 +47,16 @@ class GpgKeysController < ApplicationController
     }
   end
 
+  def param_rules
+    {
+      :create => {:gpg_key => [:name, :content, :content_upload]},
+      :update => {:gpg_key => [:name, :content, :content_upload]}
+    }
+  end
+
   def items
     render_panel_direct(GpgKey, @panel_options, params[:search], params[:offset], [:name_sort, :asc],
-      :filter=>{:organization_id=>[current_organization.id]})
+      {:default_field => :name, :filter=>{:organization_id=>[current_organization.id]}})
   end
 
   def show
@@ -122,11 +129,10 @@ class GpgKeysController < ApplicationController
     render :text => escape_html(gpg_key_params.values.first)
 
   rescue Exception => error
-    notice error, {:level => :error}
-
-    respond_to do |format|
-      format.js { render :partial => "layouts/notification", :status => :bad_request, :content_type => 'text/html' and return}
-    end
+    Rails.logger.error error.to_s
+    return_error = notice(error, {:level => :error, :synchronous_request => false})
+  
+    render :json => return_error.to_json, :status => :bad_request
   end
 
   def destroy

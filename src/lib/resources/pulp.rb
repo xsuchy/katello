@@ -252,7 +252,7 @@ module Pulp
         body = post(Repository.repository_path + repo_id +"/add_distribution/", {:distributionid=>distribution_id}.to_json, self.default_headers).body
       end
 
-      def destroy repo_id
+      def destroy repo_id # TODO remove this unreachable method, it's overridden few lines below
         raise ArgumentError, "repo id has to be specified" unless repo_id
         self.delete(repository_path  + repo_id + "/", self.default_headers).code.to_i
       end
@@ -281,22 +281,7 @@ module Pulp
         path = Repository.repository_path + repo_id + "/sync/"
         response = get(path, self.default_headers)
         parsed = JSON.parse(response.body)
-
-        return parsed if parsed.empty?
-
-        parsed.sort!{|a,b|
-          if a['finish_time'].nil? && b['finish_time'].nil?
-            b['start_time'] <=> a['start_time']
-          elsif a['finish_time'].nil?
-            1
-          elsif b['finish_time'].nil?
-            -1
-          else
-            b['finish_time'] <=> a['finish_time'] 
-          end
-        }
-
-        return [parsed.first.with_indifferent_access]
+        return parsed
       end
 
       def destroy repo_id
@@ -353,7 +338,7 @@ module Pulp
 
       def generate_metadata repo_id
         response = post(repository_path + repo_id + "/generate_metadata/", {}, self.default_headers)
-        JSON.parse(response.body)
+        JSON.parse(response.body).with_indifferent_access
       end
 
       private

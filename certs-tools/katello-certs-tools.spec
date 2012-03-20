@@ -2,7 +2,7 @@ Name: katello-certs-tools
 Summary: Katello SSL Key/Cert Tool
 Group: Applications/Internet
 License: GPLv2 and Python
-Version: 1.1.2
+Version: 1.1.4
 Release: 1%{?dist}
 URL:      https://fedorahosted.org/katello
 Source0:  https://fedorahosted.org/releases/k/a/katello/%{name}-%{version}.tar.gz
@@ -20,15 +20,12 @@ Katello.
 %setup -q
 
 %build
-/usr/bin/docbook2man katello-bootstrap.sgml
 /usr/bin/docbook2man katello-ssl-tool.sgml
 %{__python} setup.py build
 
 %install
 rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --skip-build --root $RPM_BUILD_ROOT
-chmod +x $RPM_BUILD_ROOT/%{python_sitelib}/certs/client_config_update.py
-chmod +x $RPM_BUILD_ROOT/%{python_sitelib}/certs/katello_bootstrap.py
 chmod +x $RPM_BUILD_ROOT/%{python_sitelib}/certs/katello_ssl_tool.py
 
 %clean
@@ -40,13 +37,19 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_datarootdir}/katello/certs/*.sh
 %attr(755,root,root) %{_bindir}/katello-sudo-ssl-tool
 %attr(755,root,root) %{_bindir}/katello-ssl-tool
-%attr(755,root,root) %{_bindir}/katello-bootstrap
 %doc %{_mandir}/man1/katello-*.1*
 %doc LICENSE PYTHON-LICENSES.txt
 %doc ssl-howto-simple.txt ssl-howto.txt
-%attr(755,root,root) %{_var}/www/html/pub/bootstrap/client_config_update.py*
 
 %changelog
+* Tue Mar 20 2012 Lukas Zapletal <lzap+git@redhat.com> 1.1.4-1
+- 781210 - cert tools man page review
+
+* Tue Mar 06 2012 Mike McCune <mmccune@redhat.com> 1.1.3-1
+- 800093 - CRL was non functional without these config options
+  (jmatthew@redhat.com)
+- 788708 - removing legacy bootstrap script and generator (lzap+git@redhat.com)
+
 * Mon Feb 27 2012 Lukas Zapletal <lzap+git@redhat.com> 1.1.2-1
 - 761314 - Make sure katello-agent communicates with ssl
 - 790835 - Create bootstrap RPM package with cons. cert
