@@ -2,7 +2,7 @@
 %global homedir %{_datarootdir}/katello/install
 
 Name:           katello-configure
-Version:        0.2.15
+Version:        0.2.16
 Release:        1%{?dist}
 Summary:        Configuration tool for Katello
 
@@ -36,7 +36,7 @@ find -name '*.pp' | xargs -n 1 -t puppet --parseonly
 find modules/ -name \*erb | xargs aux/check_erb
 
 THE_VERSION=%version perl -000 -ne 'if ($X) { s/^THE_VERSION/$ENV{THE_VERSION}/; s/\s+CLI_OPTIONS/$C/; s/^CLI_OPTIONS_LONG/$X/; print; next } ($t, $l, $v, $d) = /^#\s*(.+?\n)(.+\n)?(\S+)\s*=\s*(.*?)\n+$/s; $l =~ s/^#\s*//gm; $l = $t if not $l; ($o = $v) =~ s/_/-/g; $x .= qq/=item --$o=<\U$v\E>\n\n$l\nThe default value is "$d".\n\n/; $C .= "\n        [ --$o=<\U$v\E> ]"; $X = $x if eof' default-answer-file man/katello-configure.pod \
-	| /usr/bin/pod2man --name=%{name} --official --section=1 --release=%{version} - man/katello-configure.man1
+	| /usr/bin/pod2man --name=%{name} -c "Katello Reference" --section=1 --release=%{version} - man/katello-configure.man1
 
 %install
 rm -rf %{buildroot}
@@ -63,6 +63,13 @@ rm -rf %{buildroot}
 %{_mandir}/man1/katello-configure.1*
 
 %changelog
+* Mon Mar 26 2012 Martin Bačovský <mbacovsk@redhat.com> 0.2.16-1
+- 805124 - Security review of world-readable files (mbacovsk@redhat.com)
+- 804127 - adding configurable log property (jsherril@redhat.com)
+- 806028 - postgres sysvinit script workaround (lzap+git@redhat.com)
+- 802454 - adding support for pulp post-sync request (jsherril@redhat.com)
+- fixing header in the configure man page (lzap+git@redhat.com)
+
 * Tue Mar 20 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.15-1
 - 802346 - wait for postgres to come up in puppet
 

@@ -31,6 +31,7 @@ test_success "org create for manifest ($MANIFEST_ORG)" org create --name="$MANIF
 test_success "env create for manifest ($MANIFEST_ENV)" environment create --org="$MANIFEST_ORG" --name="$MANIFEST_ENV" --prior Library
 test_success "update provider url" provider update --name "Red Hat" --org "$MANIFEST_ORG" --url "$MANIFEST_REPO_URL"
 test_success "import manifest" provider import_manifest --name "Red Hat" --org "$MANIFEST_ORG" --file "$MANIFEST_PATH" --force
+test_success "products refresh" provider refresh_products --name "Red Hat" --org "$MANIFEST_ORG"
 test_success "repo enable" repo enable --name="$MANIFEST_REPO" --product "$MANIFEST_EPROD" --org "$MANIFEST_ORG"
 test_success "repo synchronize" repo synchronize --name="$MANIFEST_REPO" --product "$MANIFEST_EPROD" --org "$MANIFEST_ORG"
 test_success "changeset create" changeset create --org="$MANIFEST_ORG" --environment="$MANIFEST_ENV" --name="$CS1_NAME"
@@ -51,6 +52,9 @@ if sm_present; then
   test_own_cmd_success "rhsm subscribe to pool" sudo subscription-manager subscribe --pool "$POOLID"
   sudo yum remove -y "$INSTALL_PACKAGE" &> /dev/null
   test_own_cmd_success "install package from subscribed product" sudo yum install -y "$INSTALL_PACKAGE" --nogpgcheck --releasever "$RELEASEVER" --disablerepo \* --enablerepo "$MANIFEST_REPO_LABEL"
+  sudo yum remove -y "$INSTALL_PACKAGE" &> /dev/null
+  test_own_cmd_success "rhsm set releasever" sudo subscription-manager release --set "$RELEASEVER"
+  test_own_cmd_success "install package from subscribed product after set releasever" sudo yum install -y "$INSTALL_PACKAGE" --nogpgcheck
   sudo yum remove -y "$INSTALL_PACKAGE" &> /dev/null
   test_own_cmd_success "rhsm unsubscribe all" sudo subscription-manager unsubscribe --all
   test_own_cmd_success "rhsm unregister" sudo subscription-manager unregister

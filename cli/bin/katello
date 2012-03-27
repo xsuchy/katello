@@ -182,6 +182,7 @@ def setup_admin(admin):
     system_cmd.add_action('report', system.Report())
     system_cmd.add_action('tasks', system.TasksList())
     system_cmd.add_action('task', system.TaskInfo())
+    system_cmd.add_action('releases', system.Releases())
     admin.add_command('system', system_cmd)
 
     sync_plan_cmd = sync_plan.SyncPlan()
@@ -214,6 +215,7 @@ def setup_admin(admin):
     prov_cmd.add_action('cancel_sync', provider.CancelSync())
     prov_cmd.add_action('status', provider.Status())
     prov_cmd.add_action('import_manifest', provider.ImportManifest())
+    prov_cmd.add_action('refresh_products', provider.RefreshProducts())
     admin.add_command('provider', prov_cmd)
 
     cset_cmd = changeset.Changeset()

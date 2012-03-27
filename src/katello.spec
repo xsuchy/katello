@@ -16,7 +16,7 @@
 %global confdir deploy/common
 
 Name:           katello
-Version:        0.2.14
+Version:        0.2.20
 Release:        1%{?dist}
 Summary:        A package for managing application life-cycle for Linux systems
 BuildArch:      noarch
@@ -105,6 +105,7 @@ BuildRequires:  rubygem(chunky_png)
 BuildRequires:  rubygem(fssm) >= 0.2.7
 BuildRequires:  rubygem(compass) >= 0.11.5
 BuildRequires:  rubygem(compass-960-plugin) >= 0.10.4
+BuildRequires:  java >= 0:1.6.0
 
 %description common
 Common bits for all Katello instances
@@ -354,6 +355,23 @@ if [ $1 -eq 0 ] ; then
 fi
 
 %changelog
+* Tue Mar 27 2012 Ivan Necas <inecas@redhat.com> 0.2.20-1
+- periodic-build
+
+* Thu Mar 22 2012 Mike McCune <mmccune@redhat.com> 0.2.18-1
+- retagging to fix broken tag
+* Thu Mar 22 2012 Mike McCune <mmccune@redhat.com> 0.2.17-1
+- Revert "removing BuildRequires we don't need anymore" (mmccune@redhat.com)
+
+* Thu Mar 22 2012 Mike McCune <mmccune@redhat.com> 0.2.16-1
+- removing BuildRequires we don't need anymore (mmccune@redhat.com)
+- 798264 - Katello debug collects certificate password files and some certs
+  (mbacovsk@redhat.com)
+- 795780, 805122 - Improvement to the way the most recent sync status is
+  determined to prevent error and show proper completion. (ehelms@redhat.com)
+- 798264 - Katello debug collects certificate password files and some certs
+  (mbacovsk@redhat.com)
+
 * Thu Mar 15 2012 Ivan Necas <inecas@redhat.com> 0.2.14-1
 - periodic build
 * Tue Mar 13 2012 Ivan Necas <inecas@redhat.com> 0.2.13-1

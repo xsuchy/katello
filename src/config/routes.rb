@@ -341,6 +341,7 @@ Src::Application.routes.draw do
         get :packages, :action => :package_profile
         get :errata
         get :pools
+        get :releases
         put :enabled_repos
       end
       collection do
@@ -362,6 +363,7 @@ Src::Application.routes.draw do
       member do
         post :import_products
         post :import_manifest
+        post :refresh_products
         post :product_create
         get :products
       end
@@ -441,7 +443,7 @@ Src::Application.routes.draw do
       resources :gpg_keys, :only => [:index, :create]
     end
 
-    resources :changesets, :only => [:show, :destroy] do
+    resources :changesets, :only => [:show, :update, :destroy] do
       post :promote, :on => :member, :action => :promote
       get :dependencies, :on => :member, :action => :dependencies
       resources :products, :controller => :changesets_content do
@@ -491,6 +493,9 @@ Src::Application.routes.draw do
         get :gpg_key_content
         post :enable
       end
+      collection do
+        post :sync_complete
+      end
     end
 
     resources :environments, :only => [:show, :update, :destroy] do
@@ -502,6 +507,10 @@ Src::Application.routes.draw do
       end
       resources :activation_keys, :only => [:index, :create]
       resources :templates, :only => [:index]
+
+      member do
+        get :releases
+      end
     end
 
     resources :gpg_keys, :only => [:show, :update, :destroy] do
@@ -547,6 +556,7 @@ Src::Application.routes.draw do
     resources :consumers, :controller => 'systems'
     match '/owners/:organization_id/environments' => 'environments#index', :via => :get
     match '/owners/:organization_id/pools' => 'candlepin_proxies#get', :via => :get
+    match '/owners/:organization_id/servicelevels' => 'candlepin_proxies#get', :via => :get
     match '/environments/:environment_id/consumers' => 'systems#index', :via => :get
     match '/environments/:environment_id/consumers' => 'systems#create', :via => :post
     match '/consumers/:id' => 'systems#regenerate_identity_certificates', :via => :post
@@ -555,6 +565,7 @@ Src::Application.routes.draw do
     # proxies -------------------
       # candlepin proxy ---------
     match '/consumers/:id/certificates' => 'candlepin_proxies#get', :via => :get
+    match '/consumers/:id/release' => 'candlepin_proxies#get', :via => :get
     match '/consumers/:id/certificates/serials' => 'candlepin_proxies#get', :via => :get
     match '/consumers/:id/entitlements' => 'candlepin_proxies#get', :via => :get
     match '/consumers/:id/entitlements' => 'candlepin_proxies#post', :via => :post
