@@ -19,18 +19,31 @@ module Ldap
   end
 
   class LdapConnection
-    attr_reader :ldap, :host, :base
+    attr_reader :ldap, :host, :base, :group_base
 
     def initialize(config={})
       encryption = AppConfig.ldap.encryption
       @ldap = Net::LDAP.new(encryption.to_sym)
       @ldap.host = @host = AppConfig.ldap.host
       @base = AppConfig.ldap.base
+      @group_base = AppConfig.ldap.group_base
     end
 
     def bind?(uid=nil, password=nil)
       @ldap.auth "uid=#{uid},#{@base}", password
       @ldap.bind
+    end
+
+    def groups_for_uid(uid)
+      filter = Net::LDAP::Filter.eq("memberUid", uid)
+      # group base name must be preconfigured
+      treebase = group_base
+      groups = []
+      # groups filtering will work w/ group common names 
+      ldap.search(:base => treebase, :filter => filter) do |entry|
+        groups << entry[:cn]
+      end
+      groups
     end
   end
 end
