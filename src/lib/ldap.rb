@@ -34,16 +34,52 @@ module Ldap
       @ldap.bind
     end
 
+    # returns a list of ldap groups to which a user belongs
+    # note : this method is not particularly fast for large ldap systems
     def groups_for_uid(uid)
       filter = Net::LDAP::Filter.eq("memberUid", uid)
       # group base name must be preconfigured
-      treebase = group_base
+      treebase = @group_base
       groups = []
       # groups filtering will work w/ group common names 
-      ldap.search(:base => treebase, :filter => filter) do |entry|
+      @ldap.search(:base => treebase, :filter => filter) do |entry|
         groups << entry[:cn]
       end
       groups
     end
+
+    # returns whether a user is a member of a particular group
+    # note: this method is much faster than groups_for_uid
+    # 
+    # gids should be an array of group common names
+    #
+    # returns true if owner is in ANY of the groups
+    def is_in_group(uid, gids = [])
+      filter = Net::LDAP::Filter.eq("memberUid", uid)
+      treebase = group_base
+      group_filters = []
+      matches = 0
+      # we need a new filter for each group cn
+      gids.each do |group_cn|
+        group_filters << Net::LDAP::Filter.eq("cn", group_cn)
+      end
+      if group_filters.size >= 1
+        # OR the group filters together
+        group_filter = group_filters[0]
+        if group_filters.size > 1
+          group_filters[1..group_filters.size-1].each do |filter|
+            group_filter = group_filter | filter
+          end
+        end
+        # AND the set of group filters w/ base filter
+        filter = filter & group_filter
+        @ldap.search(:base => treebase, :filter => filter) do |entry|
+          matches = matches + 1 
+        end
+      end
+
+      return matches > 0
+    end
+
   end
 end
