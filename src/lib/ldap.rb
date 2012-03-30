@@ -43,7 +43,7 @@ module Ldap
       groups = []
       # groups filtering will work w/ group common names 
       @ldap.search(:base => treebase, :filter => filter) do |entry|
-        groups << entry[:cn]
+        groups << entry[:cn][0]
       end
       groups
     end
@@ -57,6 +57,7 @@ module Ldap
     def is_in_group(uid, gids = [])
       filter = Net::LDAP::Filter.eq("memberUid", uid)
       treebase = group_base
+      return nil if treebase == nil || gids.empty?
       group_filters = []
       matches = 0
       # we need a new filter for each group cn
@@ -67,8 +68,8 @@ module Ldap
         # OR the group filters together
         group_filter = group_filters[0]
         if group_filters.size > 1
-          group_filters[1..group_filters.size-1].each do |filter|
-            group_filter = group_filter | filter
+          group_filters[1..group_filters.size-1].each do |gfilter|
+            group_filter = group_filter | gfilter
           end
         end
         # AND the set of group filters w/ base filter
