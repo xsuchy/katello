@@ -18,8 +18,10 @@ class Api::RoleLdapGroupsController < Api::ApiController
   before_filter :authorize
 
   def rules
+    index_test = lambda{Role.any_readable?}
     edit_test = lambda{Role.editable?}
     {
+      :index => index_test,
       :create => edit_test,
       :destroy => edit_test,
     }
@@ -33,6 +35,10 @@ class Api::RoleLdapGroupsController < Api::ApiController
   def destroy
     @role.remove_ldap_group(params[:id])
     render :text => _("Removed LDAP group '%s'") % params[:id], :status => 200
+  end
+
+  def index
+    render :json => @role.ldap_group_roles.where(query_params).to_json()
   end
 
   private

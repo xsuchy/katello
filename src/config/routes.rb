@@ -527,7 +527,7 @@ Src::Application.routes.draw do
     resources :roles do
       get :available_verbs, :on => :collection, :action => :available_verbs
       resources :permissions, :only => [:index, :show, :create, :destroy]
-      resources :ldap_groups, :controller => :role_ldap_groups , :only => [:create, :destroy]
+      resources :ldap_groups, :controller => :role_ldap_groups , :only => [:create, :destroy, :index]
     end
 
 
