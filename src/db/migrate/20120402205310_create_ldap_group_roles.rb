@@ -2,7 +2,7 @@ class CreateLdapGroupRoles < ActiveRecord::Migration
   def self.up
     create_table :ldap_group_roles do |t|
       t.string :ldap_group
-      t.string :role_id
+      t.belongs_to :role
 
       t.timestamps
     end
