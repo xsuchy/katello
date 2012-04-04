@@ -238,6 +238,7 @@ class User < ActiveRecord::Base
   #
   # This method is called by every protected controller.
   def allowed_to?(verbs, resource_type, tags = nil, org = nil, any_tags = false)
+    verify_ldap_roles if AppConfig.ldap_roles?
     tags = [] if tags.nil?
     tags = [tags] unless tags.is_a? Array
     raise  ArgumentError, "Tags need to be integers - #{tags} are not."  if
@@ -267,6 +268,29 @@ class User < ActiveRecord::Base
     end
   end
 
+  # verify the user is in the groups we are think they are in
+  # if not, reset them
+  def verify_ldap_roles
+    # find all roles that ldap created
+    ldap_roles = []
+    self.roles.each do |role|
+      ldap_roles << role if role.ldap
+    end
+    # get the group list for those roles
+    group_list = []
+    ldap_roles.each do |ldap_role|
+      # TODO load multiple ldap groups at a time
+      group_list << LdapGroupRole.find_by_role_id(ldap_role.id).ldap_group
+    end
+    # make sure the user is still in those groups
+    # this operation is inexpensive compared to getting a new group list
+    if !Ldap.is_in_groups(self.username, self.group_list)
+      # if user is not in these groups, flush their roles
+      # this is expensive
+      set_ldap_roles
+    end
+  end
+    
   # Class method that has the same functionality as allowed_to? method but operates
   # on the current logged user. The class attribute User.current must be set!
   def self.allowed_to?(verb, resource_type, tags = nil, org = nil, any_tags = false)
