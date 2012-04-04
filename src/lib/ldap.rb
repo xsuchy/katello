@@ -18,6 +18,11 @@ module Ldap
     ldap.bind? uid, password
   end
 
+  def self.ldap_groups(uid)
+    ldap = LdapConnection.new
+    ldap.groups_for_uid(uid)
+  end
+
   class LdapConnection
     attr_reader :ldap, :host, :base, :group_base
 

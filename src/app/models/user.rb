@@ -475,6 +475,31 @@ class User < ActiveRecord::Base
     raise
   end
 
+  def set_ldap_roles
+    # first, delete existing ldap roles
+    clear_existing_ldap_roles
+    # load groups from ldap
+    groups = Ldap.ldap_groups(uid)
+    groups.each do |group|
+      # find corresponding 
+      role = LdapGroupRole.find_by_ldap_group(group)
+      role.ldap = true
+      self.roles << role if role != nil
+    end
+    self.save
+  end
+
+  def clear_existing_ldap_roles
+    roles = self.roles
+    non_ldap_roles = []
+    roles.each do |role|
+      if role.ldap == nill || role.ldap == false
+        non_ldap_roles << role
+      end
+    end
+    self.roles = non_ldap_roles
+  end
+
   protected
 
   def can_be_deleted?
