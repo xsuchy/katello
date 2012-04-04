@@ -25,7 +25,7 @@ module Ldap
 
   def self.is_in_groups(uid, grouplist)
     ldap = LdapConnection.new
-    ldap.is_in_all_groups(uid, grouplist)
+    ldap.is_in_groups(uid, grouplist, true)
   end
 
   class LdapConnection
@@ -58,47 +58,14 @@ module Ldap
       groups
     end
     
-    # returns whether a user is a member of ALL particular groups
+    # returns whether a user is a member of ALL or ANY particular groups
     # note: this method is much faster than groups_for_uid
     # 
     # gids should be an array of group common names
     #
-    # returns true if owner is in ALL of the groups
-    def is_in_all_groups(uid, gids = [])
-      filter = Net::LDAP::Filter.eq("memberUid", uid)
-      treebase = group_base
-      return nil if treebase == nil || gids.empty?
-      group_filters = []
-      matches = 0
-      # we need a new filter for each group cn
-      gids.each do |group_cn|
-        group_filters << Net::LDAP::Filter.eq("cn", group_cn)
-      end
-      if group_filters.size >= 1
-        # OR the group filters together
-        group_filter = group_filters[0]
-        if group_filters.size > 1
-          group_filters[1..group_filters.size-1].each do |gfilter|
-            group_filter = group_filter & gfilter
-          end
-        end
-        # AND the set of group filters w/ base filter
-        filter = filter & group_filter
-        @ldap.search(:base => treebase, :filter => filter) do |entry|
-          matches = matches + 1 
-        end
-      end
-
-      return matches > 0
-    end
-
-    # returns whether a user is a member of a particular group
-    # note: this method is much faster than groups_for_uid
-    # 
-    # gids should be an array of group common names
-    #
+    # returns true if owner is in ALL of the groups if all=true, otherwise
     # returns true if owner is in ANY of the groups
-    def is_in_any_group(uid, gids = [])
+    def is_in_groups(uid, gids = [], all=false)
       filter = Net::LDAP::Filter.eq("memberUid", uid)
       treebase = group_base
       return nil if treebase == nil || gids.empty?
@@ -113,7 +80,11 @@ module Ldap
         group_filter = group_filters[0]
         if group_filters.size > 1
           group_filters[1..group_filters.size-1].each do |gfilter|
-            group_filter = group_filter | gfilter
+            if all
+              group_filter = group_filter & gfilter
+            else 
+              group_filter = group_filter | gfilter
+            end
           end
         end
         # AND the set of group filters w/ base filter
@@ -125,6 +96,6 @@ module Ldap
 
       return matches > 0
     end
-
   end
+
 end
