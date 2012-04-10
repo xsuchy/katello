@@ -33,7 +33,11 @@ module Ldap
 
     def initialize(config={})
       encryption = AppConfig.ldap.encryption
-      @ldap = Net::LDAP.new(encryption.to_sym)
+      if encryption.respond_to? :to_sym 
+        @ldap = Net::LDAP.new(encryption.to_sym)
+      else
+        @ldap = Net::LDAP.new()
+      end
       @ldap.host = @host = AppConfig.ldap.host
       @base = AppConfig.ldap.base
       @group_base = AppConfig.ldap.group_base
@@ -67,7 +71,7 @@ module Ldap
     # returns true if owner is in ANY of the groups
     def is_in_groups(uid, gids = [], all=false)
       filter = Net::LDAP::Filter.eq("memberUid", uid)
-      treebase = group_base
+      treebase = @group_base
       return nil if treebase == nil || gids.empty?
       group_filters = []
       matches = 0

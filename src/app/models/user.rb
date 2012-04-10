@@ -238,7 +238,7 @@ class User < ActiveRecord::Base
   #
   # This method is called by every protected controller.
   def allowed_to?(verbs, resource_type, tags = nil, org = nil, any_tags = false)
-    verify_ldap_roles if AppConfig.ldap_roles?
+    verify_ldap_roles if AppConfig.ldap_roles
     tags = [] if tags.nil?
     tags = [tags] unless tags.is_a? Array
     raise  ArgumentError, "Tags need to be integers - #{tags} are not."  if
@@ -284,7 +284,7 @@ class User < ActiveRecord::Base
     end
     # make sure the user is still in those groups
     # this operation is inexpensive compared to getting a new group list
-    if !Ldap.is_in_groups(self.username, self.group_list)
+    if !Ldap.is_in_groups(self.username, group_list)
       # if user is not in these groups, flush their roles
       # this is expensive
       set_ldap_roles
@@ -503,25 +503,20 @@ class User < ActiveRecord::Base
     # first, delete existing ldap roles
     clear_existing_ldap_roles
     # load groups from ldap
-    groups = Ldap.ldap_groups(uid)
+    groups = Ldap.ldap_groups(self.username)
     groups.each do |group|
       # find corresponding 
-      role = LdapGroupRole.find_by_ldap_group(group)
-      role.ldap = true
-      self.roles << role if role != nil
+      group_role = LdapGroupRole.find_by_ldap_group(group)
+      if group_role
+        group_role.role.ldap = true
+        self.roles << group_role.role unless self.roles.include?(group_role.role)
+      end
     end
     self.save
   end
 
   def clear_existing_ldap_roles
-    roles = self.roles
-    non_ldap_roles = []
-    roles.each do |role|
-      if role.ldap == nill || role.ldap == false
-        non_ldap_roles << role
-      end
-    end
-    self.roles = non_ldap_roles
+    self.roles.delete_if {|r| r.ldap}
   end
 
   protected
