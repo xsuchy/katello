@@ -15,6 +15,7 @@
 #
 
 import os
+import sys
 from gettext import gettext as _
 from optparse import OptionValueError
 
@@ -24,12 +25,6 @@ from katello.client.core.base import Action, Command
 from katello.client.core.utils import is_valid_record, get_abs_path, run_spinner_in_bg, system_exit
 from katello.client.api.utils import get_library, get_environment, get_template, get_product, get_repo
 from katello.client.utils.encoding import u_str
-
-# set import (works for both Python 2.6+ and 2.5)
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 Config()
 
@@ -235,7 +230,7 @@ class Export(TemplateAction):
         try:
             f = self.open_file(tplPath)
         except:
-            print _("Could not create file %s") % tplPath
+            print >> sys.stderr, _("Could not create file %s") % tplPath
             return os.EX_IOERR
 
         self.api.validate_tpl(template["id"], format)
@@ -289,7 +284,7 @@ class Create(TemplateAction):
                 print _("Successfully created template [ %s ]") % template['name']
                 return os.EX_OK
             else:
-                print _("Could not create template [ %s ]") % name
+                print >> sys.stderr, _("Could not create template [ %s ]") % name
                 return os.EX_DATAERR
         else:
             return os.EX_DATAERR

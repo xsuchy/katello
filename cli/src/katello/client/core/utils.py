@@ -18,7 +18,6 @@ import re
 import sys
 import time
 import threading
-import calendar
 from xml.utils import iso8601
 from katello.client.api.task_status import TaskStatusAPI, SystemTaskStatusAPI
 from katello.client.utils.encoding import u_str
@@ -193,6 +192,8 @@ class Printer:
                 continue
             if col['multiline']:
                 value = text_to_line(value)
+            if col['time_format'] and value is not None:
+                value = format_date(value)
 
             print u_str(value).ljust(width),
             print self._delim,
@@ -206,7 +207,9 @@ class Printer:
             widths[key] = len(u_str(col['name']))+1
             for item in items:
                 if not key in item: continue
-                value = u_str(item[key])
+                value = item[key]
+                if col['time_format'] and value is not None: value = format_date(value)
+                value = u_str(value)
                 if widths[key] < len(value):
                     widths[key] = len(value)+1
 

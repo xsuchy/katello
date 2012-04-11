@@ -18,7 +18,7 @@ Summary:       Client package for managing application life-cycle for Linux syst
 Group:         Applications/System
 License:       GPLv2
 URL:           http://www.katello.org
-Version:       0.2.18
+Version:       0.2.24
 Release:       1%{?dist}
 Source0:       %{name}-%{version}.tar.gz
 BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -89,6 +89,23 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Apr 11 2012 Petr Chalupa <pchalupa@redhat.com> 0.2.24-1
+- 713153 - RFE: include IP information in consumers/systems related API calls.
+- 768243 - Error msg needs to be improved
+
+* Tue Apr 10 2012 Tomas Strachota <tstrachota@redhat.com> 0.2.23-1
+- slas - all cli options --service_level renamed to --servicelevel
+
+* Fri Apr 06 2012 Tomas Strachota <tstrachota@redhat.com> 0.2.22-1
+- slas - field for SLA in hash export of consumer renamed We used service_level
+  but subscription-manager requires serviceLevel and checks for it's presence.
+* Wed Apr 04 2012 Petr Chalupa <pchalupa@redhat.com> 0.2.21-1
+- 798649 - RFE - Better listing of products and repos
+
+* Mon Apr 02 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.20-1
+- cleanup - removing unused imports and variables
+- 744199 - cli now reports all errors to stderr
+
 * Tue Mar 27 2012 Ivan Necas <inecas@redhat.com> 0.2.18-1
 - periodic-build
 

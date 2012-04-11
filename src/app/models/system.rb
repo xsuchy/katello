@@ -35,11 +35,11 @@ class System < ActiveRecord::Base
                           :path_match => "facts.*",
                           :mapping => {
                               :type=>"string",
-                              :analyzer=>"keyword"
+                              :analyzer=>"kt_name_analyzer"
                           }
                         }} ] do
-    indexes :name, :type => 'string', :analyzer => :keyword
-    indexes :description, :type => 'string', :analyzer => :keyword
+    indexes :name, :type => 'string', :analyzer => :kt_name_analyzer
+    indexes :description, :type => 'string', :analyzer => :kt_name_analyzer
     indexes :name_sort, :type => 'string', :index => :not_analyzed
     indexes :lastCheckin, :type=>'date'
 
@@ -146,6 +146,7 @@ class System < ActiveRecord::Base
     json['environment'] = environment.as_json unless environment.nil?
     json['activation_key'] = activation_keys.as_json unless activation_keys.nil?
     json['template'] = system_template.as_json unless system_template.nil?
+    json['ipv4_address'] = facts.try(:[], 'network.ipv4_address')
     if self.guest == 'true'
       json['host'] = self.host.attributes if self.host
     else

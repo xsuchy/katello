@@ -15,6 +15,7 @@
 #
 
 import os
+import sys
 from gettext import gettext as _
 
 from katello.client.api.system import SystemAPI
@@ -70,6 +71,8 @@ class List(SystemAction):
             self.printer.setHeader(_("Systems List For Environment [ %s ] in Org [ %s ]") % (env_name, org_name))
 
         self.printer.addColumn('name')
+        self.printer.addColumn('ipv4_address')
+        self.printer.addColumn('serviceLevel', _('Service Level'))
 
         self.printer._grep = True
         self.printer.printItems(systems)
@@ -119,6 +122,7 @@ class Info(SystemAction):
             system["guests"] = "[ "+ ", ".join([guest["name"] for guest in system["guests"]]) +" ]"
 
         self.printer.addColumn('name')
+        self.printer.addColumn('ipv4_address')
         self.printer.addColumn('uuid')
         self.printer.addColumn('location')
         self.printer.addColumn('created_at', 'Registered', time_format=True)
@@ -128,6 +132,7 @@ class Info(SystemAction):
              self.printer.addColumn('releaseVer', 'OS release')
         self.printer.addColumn('activation_keys', multiline=True, show_in_grep=False)
         self.printer.addColumn('host', show_in_grep=False)
+        self.printer.addColumn('serviceLevel', _('Service Level'))
         self.printer.addColumn('guests',  show_in_grep=False)
         if system.has_key("template"):
             t = system["template"]["name"]
@@ -408,16 +413,13 @@ class Register(SystemAction):
     description = _('register a system')
 
     def setup_parser(self):
-        self.parser.add_option('--name', dest='name',
-                       help=_("system name (required)"))
-        self.parser.add_option('--org', dest='org',
-                       help=_("organization name (required)"))
-        self.parser.add_option('--environment', dest='environment',
-                       help=_("environment name eg: development"))
+        self.parser.add_option('--name', dest='name', help=_("system name (required)"))
+        self.parser.add_option('--org', dest='org', help=_("organization name (required)"))
+        self.parser.add_option('--environment', dest='environment', help=_("environment name eg: development"))
+        self.parser.add_option('--servicelevel', dest='sla', help=_("service level agreement"))
         self.parser.add_option('--activationkey', dest='activationkey',
             help=_("activation key, more keys are separated with comma e.g. --activationkey=key1,key2"))
-        self.parser.add_option('--release', dest='release',
-                       help=_("values of $releasever for the system"))
+        self.parser.add_option('--release', dest='release', help=_("values of $releasever for the system"))
 
     def check_options(self):
         self.require_option('name')
@@ -440,13 +442,14 @@ class Register(SystemAction):
         environment = self.get_option('environment')
         activation_keys = self.get_option('activationkey')
         release = self.get_option('release')
+        sla = self.get_option('sla')
 
-        system = self.api.register(name, org, environment, activation_keys, 'system', release)
+        system = self.api.register(name, org, environment, activation_keys, 'system', release, sla)
 
         if is_valid_record(system):
             print _("Successfully registered system [ %s ]") % system['name']
         else:
-            print _("Could not register system [ %s ]") % name
+            print >> sys.stderr, _("Could not register system [ %s ]") % name
         return os.EX_OK
 
 class Unregister(SystemAction):
@@ -468,10 +471,10 @@ class Unregister(SystemAction):
         org = self.get_option('org')
         systems = self.api.systems_by_org(org, {'name': name})
         if systems == None or len(systems) != 1:
-            print _("Could not find System [ %s ] in Org [ %s ]") % (name, org)
+            print >> sys.stderr, _("Could not find System [ %s ] in Org [ %s ]") % (name, org)
             return os.EX_DATAERR
         else:
-            result = self.api.unregister(systems[0]['uuid'])
+            self.api.unregister(systems[0]['uuid'])
             print _("Successfully unregistered System [ %s ]") % name
             return os.EX_OK
 
@@ -501,10 +504,10 @@ class Subscribe(SystemAction):
         qty = self.get_option('quantity') or 1
         systems = self.api.systems_by_org(org, {'name': name})
         if systems == None or len(systems) != 1:
-            print _("Could not find System [ %s ] in Org [ %s ]") % (name, org)
+            print >> sys.stderr, _("Could not find System [ %s ] in Org [ %s ]") % (name, org)
             return os.EX_DATAERR
         else:
-            result = self.api.subscribe(systems[0]['uuid'], pool, qty)
+            self.api.subscribe(systems[0]['uuid'], pool, qty)
             print _("Successfully subscribed System [ %s ]") % name
             return os.EX_OK
 
@@ -533,7 +536,7 @@ class Subscriptions(SystemAction):
 
 
         if systems == None or len(systems) != 1:
-            print _("Could not find System [ %s ] in Org [ %s ]") % (name, org)
+            print >> sys.stderr, _("Could not find System [ %s ] in Org [ %s ]") % (name, org)
             return os.EX_DATAERR
         else:
             self.printer.setOutputMode(Printer.OUTPUT_FORCE_VERBOSE)
@@ -621,15 +624,15 @@ class Unsubscribe(SystemAction):
         all_entitlements = self.get_option('all')
         systems = self.api.systems_by_org(org, {'name': name})
         if systems == None or len(systems) != 1:
-            print _("Could not find System [ %s ] in Org [ %s ]") % (name, org)
+            print >> sys.stderr, _("Could not find System [ %s ] in Org [ %s ]") % (name, org)
             return os.EX_DATAERR
         else:
             if all_entitlements: #unsubscribe from all
-                result = self.api.unsubscribe_all(systems[0]['uuid'])
+                self.api.unsubscribe_all(systems[0]['uuid'])
             elif serial: # unsubscribe from cert
-                result = self.api.unsubscribe_by_serial(systems[0]['uuid'], serial)
+                self.api.unsubscribe_by_serial(systems[0]['uuid'], serial)
             elif entitlement: # unsubscribe from entitlement
-                result = self.api.unsubscribe(systems[0]['uuid'], entitlement)
+                self.api.unsubscribe(systems[0]['uuid'], entitlement)
             print _("Successfully unsubscribed System [ %s ]") % name
 
             return os.EX_OK
@@ -646,7 +649,7 @@ class Update(SystemAction):
         self.parser.add_option('--environment', dest='environment',
                        help=_("environment name"))
 
-        self.parser.add_option('--new-name', dest='new_name',
+        self.parser.add_option('--new_name', dest='new_name',
                        help=_('a new name for the system'))
         self.parser.add_option('--description', dest='description',
                        help=_('a description of the system'))
@@ -654,6 +657,8 @@ class Update(SystemAction):
                        help=_("location of the system"))
         self.parser.add_option('--release', dest='release',
                        help=_("value of $releasever for the system"))
+        self.parser.add_option('--servicelevel', dest='sla',
+                       help=_("service level agreement"))
 
     def check_options(self):
         self.require_option('org')
@@ -667,6 +672,7 @@ class Update(SystemAction):
         new_description = self.get_option('description')
         new_location = self.get_option('location')
         new_release = self.get_option('release')
+        new_sla = self.get_option('sla')
 
         if env_name is None:
             systems = self.api.systems_by_org(org_name, {'name': sys_name})
@@ -683,13 +689,14 @@ class Update(SystemAction):
         if new_description: updates['description'] = new_description
         if new_location: updates['location'] = new_location
         if new_release: updates['releaseVer'] = new_release
+        if new_sla: updates['serviceLevel'] = new_sla
 
         response = self.api.update(system_uuid, updates)
 
         if is_valid_record(response):
             print _("Successfully updated system [ %s ]") % response['name']
         else:
-            print _("Could not update system [ %s ]") % systems[0]['name']
+            print >> sys.stderr, _("Could not update system [ %s ]") % systems[0]['name']
 
         return os.EX_OK
 

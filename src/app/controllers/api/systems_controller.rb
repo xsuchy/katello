@@ -65,7 +65,7 @@ class Api::SystemsController < Api::ApiController
   end
 
   def create
-    system = System.create!(params.merge({:environment => @environment}))
+    system = System.create!(params.merge({:environment => @environment, :serviceLevel => params[:service_level]}))
     render :json => system.to_json
   end
 
@@ -110,8 +110,7 @@ class Api::SystemsController < Api::ApiController
   end
 
   def update
-    @system.update_attributes!(params.slice(:name, :description, :location, :facts, :guestIds, :installedProducts, :releaseVer))
-
+    @system.update_attributes!(params.slice(:name, :description, :location, :facts, :guestIds, :installedProducts, :releaseVer, :serviceLevel))
     render :json => @system.to_json
   end
 
@@ -318,8 +317,11 @@ class Api::SystemsController < Api::ApiController
   end
 
   def find_system
-    @system = System.first(:conditions => {:uuid => params[:id]})
-    raise HttpErrors::NotFound, _("Couldn't find system '#{params[:id]}'") if @system.nil?
+    @system = System.first(:conditions => { :uuid => params[:id] })
+    if @system.nil?
+      Candlepin::Consumer.get params[:id] # check with candlepin if system is Gone, raises RestClient::Gone
+      raise HttpErrors::NotFound, _("Couldn't find system '#{params[:id]}'")
+    end
     @system
   end
 

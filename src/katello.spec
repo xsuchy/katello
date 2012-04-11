@@ -16,7 +16,7 @@
 %global confdir deploy/common
 
 Name:           katello
-Version:        0.2.20
+Version:        0.2.29
 Release:        1%{?dist}
 Summary:        A package for managing application life-cycle for Linux systems
 BuildArch:      noarch
@@ -262,6 +262,7 @@ rm -rf %{buildroot}
 %post common
 #Add /etc/rc*.d links for the script
 /sbin/chkconfig --add %{name}
+/sbin/chkconfig --add %{name}-jobs
 
 %postun common
 #update config/initializers/secret_token.rb with new key
@@ -290,6 +291,7 @@ fi
 %{homedir}/db/seeds.rb
 %{homedir}/integration_spec
 %{homedir}/lib/*.rb
+%{homedir}/lib/glue/*.rb
 %{homedir}/lib/navigation
 %{homedir}/lib/resources/cdn.rb
 %{homedir}/lib/tasks
@@ -350,11 +352,73 @@ exit 0
 
 %preun common
 if [ $1 -eq 0 ] ; then
+    /sbin/service %{name}-jobs stop >/dev/null 2>&1
+    /sbin/chkconfig --del %{name}-jobs
     /sbin/service %{name} stop >/dev/null 2>&1
     /sbin/chkconfig --del %{name}
 fi
 
 %changelog
+* Wed Apr 11 2012 Petr Chalupa <pchalupa@redhat.com> 0.2.29-1
+- 713153 - RFE: include IP information in consumers/systems related API calls.
+- 803412 - auto-subscribe w/ SLA now on system subscription page
+- reorganizing assets to reduce the number of javascript files downloaded
+- removing unneeded print statement
+- allowing search param for all, needed for all creates 
+- system packages - fix checbox events after loading more pkgs
+- system packages - add support for tabindex
+- 810375 - remove page size limit on repos displayed
+- 803410 - Y-stream release version is now available on System Details page +
+  If no specific release version is specified (value of "") then "System
+  Default" is displayed. + For Katello, release version choices come from
+  enabled repos in the system's environment. For Headpin, choices are all
+  available in the Library environment.
+
+* Fri Apr 06 2012 Tomas Strachota <tstrachota@redhat.com> 0.2.28-1
+- 809826 - regression in finding filters in the filters controller
+
+* Fri Apr 06 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.27-1
+- slas - fix in controller spec test
+
+* Fri Apr 06 2012 Tomas Strachota <tstrachota@redhat.com> 0.2.26-1
+- slas - field for SLA in hash export of consumer renamed We used service_level
+  but subscription-manager requires serviceLevel and checks for it's presence.
+- 808596 - Initial fix didn't take into consideration production mode.
+- 804685 - system packages - reformat content and add tipsy help on tables for
+  user
+
+* Wed Apr 04 2012 Petr Chalupa <pchalupa@redhat.com> 0.2.25-1
+- 798649 - RFE - Better listing of products and repos
+- check script - initial version
+- 805412 - fixing org creation error with invalid chars
+- 802454 - a few fixes to support post sync url with scheduled syncs
+- 805709 - spec test fix
+- 805709 - making filter name unique within an org and editable
+- 808576 - Regression for IE only stylesheet. Added back in.
+
+* Mon Apr 02 2012 Lukas Zapletal <lzap+git@redhat.com> 0.2.24-1
+- 750410 - katello-jobs init script links removal
+
+* Wed Mar 28 2012 Mike McCune <mmccune@redhat.com> 0.2.21-1
+- 807319 - Fix for ie8 rendering for filters page (paji@redhat.com)
+- 807319 - Fix for IE8 Rendering (jrist@redhat.com)
+- 807319 - Adds new version of html5shiv to handle html5 nodes inserted after
+  page load. (ehelms@redhat.com)
+- 806068 - repo - update pkg/errata search index on repo delete
+  (bbuckingham@redhat.com)
+- 807319 - Fixes errors thrown on roles page in IE8. (ehelms@redhat.com)
+- 807804 - fixing issue where hidden user shows up under roles
+  (jsherril@redhat.com)
+- 807332 - better exception handling in case of requst time-out
+  (inecas@redhat.com)
+- 807319 - Fix for IE8 Rendering (jrist@redhat.com)
+- 807319 - Fix for IE8 Rendering (jrist@redhat.com)
+- 807319 - Fix for IE8 (regression) (jrist@redhat.com)
+- removing console.log (jsherril@redhat.com)
+- 805202 - changing verification of package names to do a specific search
+  (jsherril@redhat.com)
+- 806942 - changing all models away from keyword analyzer (jsherril@redhat.com)
+
 * Tue Mar 27 2012 Ivan Necas <inecas@redhat.com> 0.2.20-1
 - periodic-build
 
