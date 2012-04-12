@@ -280,7 +280,8 @@ class User < ActiveRecord::Base
     group_list = []
     ldap_roles.each do |ldap_role|
       # TODO load multiple ldap groups at a time
-      group_list << LdapGroupRole.find_by_role_id(ldap_role.id).ldap_group
+      role_group = LdapGroupRole.find_by_role_id(ldap_role.id)
+      group_list << role_group.ldap_group if role_group
     end
     # make sure the user is still in those groups
     # this operation is inexpensive compared to getting a new group list
@@ -508,7 +509,6 @@ class User < ActiveRecord::Base
       # find corresponding 
       group_role = LdapGroupRole.find_by_ldap_group(group)
       if group_role
-        group_role.role.ldap = true
         self.roles << group_role.role unless self.roles.include?(group_role.role)
       end
     end
@@ -516,7 +516,7 @@ class User < ActiveRecord::Base
   end
 
   def clear_existing_ldap_roles
-    self.roles.delete_if {|r| r.ldap}
+    self.roles = self.roles.select {|r| !r.ldap}
   end
 
   protected
