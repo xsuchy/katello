@@ -853,6 +853,52 @@ var roleActions = (function($){
                 }
             }
         },
+		add_group = function(element, val, role_id){
+			var submit_data = { group : val };  
+            $.ajax({
+               type     : "POST",
+               url      : KT.routes.create_role_ldap_groups_path(role_id),
+               cache    : false,
+               data     : $.param(submit_data),
+               dataType : 'json',
+               success  : function(data){
+               	    element.removeClass('disabled');
+	                $.extend(roles_breadcrumb, data);
+                    KT.roles.tree.rerender_content();
+               },
+               error 	: function(){
+               	   element.removeClass('disabled');
+                   KT.roles.tree.rerender_content();
+               }
+            });
+		},
+		ldapGroupAdd = function(element, val, role_id){
+			element.addClass('disabled');
+			add_group(element, val, role_id);
+        },
+		remove_group = function(element, group_id){
+            $.ajax({
+               type     : "DELETE",
+               url      : KT.routes.destroy_role_ldap_groups_path(role_id),
+               cache    : false,
+               data     : $.param(submit_data),
+               dataType : 'json',
+               success  : function(data){
+               	    element.removeClass('disabled');
+	                $.extend(roles_breadcrumb, data);
+                    KT.roles.tree.rerender_content();
+               },
+               error 	: function(){
+               	   element.removeClass('disabled');
+                   KT.roles.tree.rerender_content();
+               }
+            });
+		},
+		ldapGroupRemove = function(element, val){
+			element.addClass('disabled');
+			remove_group(element, val);
+		}	
+			
         removeRole = function(button){
             button.addClass('disabled');
             $.ajax({
@@ -873,6 +919,8 @@ var roleActions = (function($){
         setCurrentCrumb         :  setCurrentCrumb,
         savePermission          :  savePermission,
         handleContentAddRemove  :  handleContentAddRemove,
+        ldapGroupAdd  			:  ldapGroupAdd,
+        ldapGroupRemove  		:  ldapGroupRemove,
         setCurrentOrganization  :  setCurrentOrganization,
         getCurrentOrganization  :  getCurrentOrganization,
         removeRole              :  removeRole,
@@ -931,6 +979,35 @@ var templateLibrary = (function($){
             });
             html += '</ul>';
             return html;
+        },
+	    ldapGroupsList = function(ldap_groups,options) {
+			var html = "";
+			if (permissions.update_roles) {
+				html += '<ul><li class="content_input_item"><form id="add_ldap_group_form">';
+				html += '<input id="add_ldap_group_input" type="text" size="33"><form>  ';
+				html += '<a id="add_ldap_group" class="fr st_button ">' + i18n.add_plus + '</a>';
+				html += '<input id="add_ldap_group_input_id" type="hidden">';
+				html += ' </li></ul>';
+			}
+			html +=  '<ul class="filterable">';
+			for( item in ldap_groups){
+			  if( item.split("_")[0] === "ldap") {
+				html += ldapGroupsListItem(ldap_groups[item], ldap_groups[item].name, options.show_button);
+				  count += 1;
+				}
+			  }
+			return html + "</ul>";
+		},
+        ldapGroupsListItem = function(group_id, name, showButton) {
+            var anchor = "";
+
+            if ( showButton ) {
+                anchor = '<a ' + 'class="fr content_add_remove remove_group st_button"'
+                                + 'data-type="group" data-id="' + group_id + '">';
+                            anchor += i18n.remove + "</a>";
+            }
+            
+            return '<li class="slide_link">' + anchor + '<div class="simple_link link_details" id="' + group_id + '"><span class="sort_attr">'  + name + '</span></div></li>';
         },
         permissionsList = function(permissions, organization_id, options){
             var html = '<ul class="filterable">',
@@ -1048,6 +1125,7 @@ var templateLibrary = (function($){
         organizationsList   :    organizationsList,
         permissionsList     :    permissionsList,
         usersList           :    usersList,
+        ldapGroupsList      :    ldapGroupsList,
         globalsList         :    globalsList,
         permissionItem      :    permissionItem
     }
@@ -1068,6 +1146,13 @@ var rolesRenderer = (function($){
 
                 options.no_slide = true;
                 render_cb(templateLibrary.usersList(roles_breadcrumb, options));
+            } else if( hash === 'role_ldap_groups' ){
+                if (permissions.create_roles || permissions.update_roles) {
+                    options.show_button = true;
+                }
+                
+                options.no_slide = true;
+                render_cb(templateLibrary.ldapGroupsList(roles_breadcrumb, options));
             } else if( hash === 'global' ) {
                 if ((!roles_breadcrumb.roles.locked) && (permissions.create_roles || permissions.update_roles)) {
                     options.show_button = true;
@@ -1221,6 +1306,12 @@ var pageActions = (function($){
                 roleActions.handleContentAddRemove($(this));
             });
 
+			$('#add_ldap_group').live('click', function(){
+				if( $(this).hasClass('disabled') ){
+					return false;
+				}
+				roleActions.ldapGroupAdd($(this), $("#add_ldap_group_input").val(), $('#role_id').val());
+			});
 
             $('#remove_role').live('click', function(){
                 var button = $(this);

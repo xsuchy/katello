@@ -287,6 +287,14 @@ Src::Application.routes.draw do
       get :auto_complete_search
       get :items
     end
+    resources :ldap_groups, :only => [] do
+      member do 
+		delete "destroy" => "roles#destroy_ldap_group", :as => "destroy"
+      end
+      collection do
+		post "create" => "roles#create_ldap_group", :as => "create"
+      end
+    end
   end
   match '/roles/:organization_id/resource_type/verbs_and_scopes' => 'roles#verbs_and_scopes', :via=>:get, :as=>'verbs_and_scopes'
 
