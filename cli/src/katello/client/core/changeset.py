@@ -24,6 +24,7 @@ from katello.client.config import Config
 from katello.client.core.base import Action, Command
 from katello.client.core.utils import is_valid_record, run_spinner_in_bg, format_date, wait_for_async_task, AsyncTask, system_exit, format_task_errors
 from katello.client.api.utils import get_organization, get_environment, get_changeset, get_template, get_repo, get_product
+from katello.client.utils import printer
 from katello.client.utils.encoding import u_str
 
 Config()
@@ -59,19 +60,17 @@ class List(ChangesetAction):
             return os.EX_DATAERR
 
         changesets = self.api.changesets(orgName, env['id'])
-        for cs in changesets:
-            cs['updated_at'] = format_date(cs['updated_at'])
 
-        self.printer.addColumn('id')
-        self.printer.addColumn('name')
-        self.printer.addColumn('updated_at')
-        self.printer.addColumn('state')
-        self.printer.addColumn('environment_id')
-        self.printer.addColumn('environment_name')
-        if verbose: self.printer.addColumn('description', multiline=True)
+        self.printer.add_column('id')
+        self.printer.add_column('name')
+        self.printer.add_column('updated_at', formatter=format_date)
+        self.printer.add_column('state')
+        self.printer.add_column('environment_id')
+        self.printer.add_column('environment_name')
+        if verbose: self.printer.add_column('description', multiline=True)
 
-        self.printer.setHeader(_("Changeset List"))
-        self.printer.printItems(changesets)
+        self.printer.set_header(_("Changeset List"))
+        self.printer.print_items(changesets)
         return os.EX_OK
 
 
@@ -108,7 +107,6 @@ class Info(ChangesetAction):
         if cset == None:
             return os.EX_DATAERR
 
-        cset['updated_at'] = format_date(cset['updated_at'])
         cset['environment_name'] = envName
 
         cset["errata"] = self.format_item_list("display_name", cset["errata"])
@@ -120,24 +118,24 @@ class Info(ChangesetAction):
         if displayDeps:
             cset["dependencies"] = self.get_dependencies(cset["id"])
 
-        self.printer.addColumn('id')
-        self.printer.addColumn('name')
-        self.printer.addColumn('description', multiline=True, show_in_grep=False)
-        self.printer.addColumn('updated_at')
-        self.printer.addColumn('state')
-        self.printer.addColumn('environment_id')
-        self.printer.addColumn('environment_name')
-        self.printer.addColumn('errata', multiline=True, show_in_grep=False)
-        self.printer.addColumn('products', multiline=True, show_in_grep=False)
-        self.printer.addColumn('packages', multiline=True, show_in_grep=False)
-        self.printer.addColumn('repositories', multiline=True, show_in_grep=False)
-        self.printer.addColumn('system_templates', multiline=True, show_in_grep=False)
-        self.printer.addColumn('distributions', multiline=True, show_in_grep=False)
+        self.printer.add_column('id')
+        self.printer.add_column('name')
+        self.printer.add_column('description', multiline=True, show_with=printer.VerboseStrategy)
+        self.printer.add_column('updated_at', formatter=format_date)
+        self.printer.add_column('state')
+        self.printer.add_column('environment_id')
+        self.printer.add_column('environment_name')
+        self.printer.add_column('errata', multiline=True, show_with=printer.VerboseStrategy)
+        self.printer.add_column('products', multiline=True, show_with=printer.VerboseStrategy)
+        self.printer.add_column('packages', multiline=True, show_with=printer.VerboseStrategy)
+        self.printer.add_column('repositories', multiline=True, show_with=printer.VerboseStrategy)
+        self.printer.add_column('system_templates', multiline=True, show_with=printer.VerboseStrategy)
+        self.printer.add_column('distributions', multiline=True, show_with=printer.VerboseStrategy)
         if displayDeps:
-            self.printer.addColumn('dependencies', multiline=True, show_in_grep=False)
+            self.printer.add_column('dependencies', multiline=True, show_with=printer.VerboseStrategy)
 
-        self.printer.setHeader(_("Changeset Info"))
-        self.printer.printItem(cset)
+        self.printer.set_header(_("Changeset Info"))
+        self.printer.print_item(cset)
 
         return os.EX_OK
 

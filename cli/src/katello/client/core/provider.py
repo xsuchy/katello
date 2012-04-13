@@ -27,7 +27,7 @@ from katello.client.core.utils import is_valid_record, get_abs_path, run_async_t
 from katello.client.core.repo import format_sync_state, format_sync_time
 from katello.client.core.utils import ProgressBar
 from katello.client.api.utils import get_provider
-
+from katello.client.utils import printer
 
 Config()
 
@@ -72,15 +72,15 @@ class List(ProviderAction):
 
         provs = self.api.providers_by_org(orgName)
 
-        self.printer.addColumn('id')
-        self.printer.addColumn('name')
-        self.printer.addColumn('provider_type', 'Type')
-        self.printer.addColumn('repository_url', 'Url')
-        #self.printer.addColumn('organization_id', 'Org Id')
-        self.printer.addColumn('description', multiline=True)
+        self.printer.add_column('id')
+        self.printer.add_column('name')
+        self.printer.add_column('provider_type', 'Type')
+        self.printer.add_column('repository_url', 'Url')
+        #self.printer.add_column('organization_id', 'Org Id')
+        self.printer.add_column('description', multiline=True)
 
-        self.printer.setHeader(_("Provider List"))
-        self.printer.printItems(provs)
+        self.printer.set_header(_("Provider List"))
+        self.printer.print_items(provs)
         return os.EX_OK
 
 
@@ -95,15 +95,15 @@ class Info(SingleProviderAction):
 
         prov = get_provider(orgName, provName)
         if prov != None:
-            self.printer.addColumn('id')
-            self.printer.addColumn('name')
-            self.printer.addColumn('provider_type', 'Type')
-            self.printer.addColumn('repository_url', 'Url')
-            self.printer.addColumn('organization_id', 'Org Id')
-            self.printer.addColumn('description', multiline=True)
+            self.printer.add_column('id')
+            self.printer.add_column('name')
+            self.printer.add_column('provider_type', 'Type')
+            self.printer.add_column('repository_url', 'Url')
+            self.printer.add_column('organization_id', 'Org Id')
+            self.printer.add_column('description', multiline=True)
 
-            self.printer.setHeader(_("Provider Information"))
-            self.printer.printItem(prov)
+            self.printer.set_header(_("Provider Information"))
+            self.printer.print_item(prov)
             return os.EX_OK
         else:
             return os.EX_DATAERR
@@ -274,25 +274,22 @@ class Status(SingleProviderAction):
 
         task = AsyncTask(self.api.last_sync_status(prov['id']))
 
-        prov['last_sync'] = format_sync_time(prov['last_sync'])
-        prov['sync_state'] = format_sync_state(prov['sync_state'])
-
         if task.is_running():
             pkgsTotal = task.total_count()
             pkgsLeft = task.items_left()
-            prov['progress'] = ("%d%% done (%d of %d packages downloaded)" % (task.get_progress()*100, pkgsTotal-pkgsLeft, pkgsTotal))
+            prov['progress'] = (_("%d%% done (%d of %d packages downloaded)") % (task.get_progress()*100, pkgsTotal-pkgsLeft, pkgsTotal))
 
         #TODO: last errors?
 
-        self.printer.addColumn('id')
-        self.printer.addColumn('name')
+        self.printer.add_column('id')
+        self.printer.add_column('name')
 
-        self.printer.addColumn('last_sync')
-        self.printer.addColumn('sync_state')
-        self.printer.addColumn('progress', show_in_grep=False)
+        self.printer.add_column('last_sync', formatter=format_sync_time)
+        self.printer.add_column('sync_state', formatter=format_sync_state)
+        self.printer.add_column('progress', show_with=printer.VerboseStrategy)
 
-        self.printer.setHeader(_("Provider Status"))
-        self.printer.printItem(prov)
+        self.printer.set_header(_("Provider Status"))
+        self.printer.print_item(prov)
         return os.EX_OK
 
 

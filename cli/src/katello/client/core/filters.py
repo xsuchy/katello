@@ -50,11 +50,11 @@ class List(FilterAction):
 
         filters = self.api.filters(org)
 
-        self.printer.addColumn('name')
-        self.printer.addColumn('description')
+        self.printer.add_column('name')
+        self.printer.add_column('description')
 
-        self.printer.setHeader(_("Filter List"))
-        self.printer.printItems(filters)
+        self.printer.set_header(_("Filter List"))
+        self.printer.print_items(filters)
         return os.EX_OK
 
 
@@ -133,14 +133,13 @@ class Info(FilterAction):
         name = self.get_option('name')
 
         filter_info = self.api.info(org, name)
-        filter_info['package_list'] = self.package_list_as_string(filter_info["package_list"])
 
-        self.printer.addColumn('name')
-        self.printer.addColumn('description')
-        self.printer.addColumn('package_list')
+        self.printer.add_column('name')
+        self.printer.add_column('description')
+        self.printer.add_column('package_list', formatter=self.package_list_as_string)
 
-        self.printer.setHeader(_("Filter Information"))
-        self.printer.printItem(filter_info)
+        self.printer.set_header(_("Filter Information"))
+        self.printer.print_item(filter_info)
         return os.EX_OK
 
     def package_list_as_string(self, package_list):
