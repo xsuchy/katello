@@ -275,7 +275,7 @@ module RolesBreadcrumbs
 
   def add_group_to_bc(bc, group)
     add_crumb_node!(bc, "ldap_group_#{group.id}", '', group.ldap_group, ['roles', 'roles_ldap_groups'],
-                  {:client_render => true}, { :has_role => false })
+                  {:client_render => true}, { :has_role => false, :id => group.id })
   end 
     
   def add_permission_bc bc, perm, adjust_count

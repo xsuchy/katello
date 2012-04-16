@@ -69,7 +69,7 @@ class RolesController < ApplicationController
        :create_permission => perm_check,
        :update_permission => perm_check,
        :create_ldap_group => [:group, :role_id],
-       :destroy_ldap_group => [:group, :role_id],
+       :destroy_ldap_group => [:id, :role_id],
      }
   end
 
@@ -283,9 +283,10 @@ class RolesController < ApplicationController
   end
 
   def destroy_ldap_group
-	group = LdapGroupRole.find(params[:id])
-	group.destroy
-    notice _("LDAP Group Mapping for '%s' was removed.") % group.group
+    group = LdapGroupRole.find(params[:id])
+    name = group.ldap_group
+    group.destroy
+    notice _("LDAP Group Mapping for '%s' was removed.") % name 
     render :json => params[:id]
   end
  

@@ -34,7 +34,7 @@ module Ldap
     def initialize(config={})
       encryption = AppConfig.ldap.encryption
       if encryption.respond_to? :to_sym 
-        @ldap = Net::LDAP.new(encryption.to_sym)
+        @ldap = Net::LDAP.new(:encryption => encryption.to_sym)
       else
         @ldap = Net::LDAP.new()
       end
