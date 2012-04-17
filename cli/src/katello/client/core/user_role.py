@@ -213,7 +213,7 @@ class RemoveLdapGroup(UserRoleAction):
 
     def setup_parser(self):
         self.parser.add_option('--name', dest='name', help=_("user role name (required)"))
-        self.parser.add_option('--group_name', dest='group_name', help=_("new LDAP group name (required)"))
+        self.parser.add_option('--group_name', dest='group_name', help=_("LDAP group name to be removed (required)"))
 
     def check_options(self):
         self.require_option('name')
