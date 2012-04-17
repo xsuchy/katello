@@ -272,17 +272,13 @@ class User < ActiveRecord::Base
   # if not, reset them
   def verify_ldap_roles
     # find all roles that ldap created
-    ldap_roles = []
-    self.roles.each do |role|
-      ldap_roles << role if role.ldap
-    end
+    ldap_roles = self.roles_users.select { |r| r.ldap }
     # get the group list for those roles
-    group_list = []
-    ldap_roles.each do |ldap_role|
-      # TODO load multiple ldap groups at a time
-      role_group = LdapGroupRole.find_by_role_id(ldap_role.id)
-      group_list << role_group.ldap_group if role_group
-    end
+    group_list = ldap_roles.collect { |r| r.role_id }.uniq
+    # get the roles that match those ldap roles
+    role_groups = LdapGroupRole.where(:role_id => group_list)
+    # and then make an array of all of the ldap groups in that list
+    ldap_groups = role_groups.collect { |r| r.ldap_group } 
     # make sure the user is still in those groups
     # this operation is inexpensive compared to getting a new group list
     if !Ldap.is_in_groups(self.username, group_list)
@@ -509,14 +505,15 @@ class User < ActiveRecord::Base
       # find corresponding 
       group_role = LdapGroupRole.find_by_ldap_group(group)
       if group_role
-        self.roles << group_role.role unless self.roles.include?(group_role.role)
+        role_user = RolesUser.new(:role => group_role.role, :user => self, :ldap => true)
+        self.roles_users << role_user unless self.roles.include?(group_role.role)
       end
     end
     self.save
   end
 
   def clear_existing_ldap_roles
-    self.roles = self.roles.select {|r| !r.ldap}
+    self.roles_users = self.roles_users.select {|r| !r.ldap}
   end
 
   protected
