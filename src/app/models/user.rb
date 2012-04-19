@@ -271,17 +271,18 @@ class User < ActiveRecord::Base
   # verify the user is in the groups we are think they are in
   # if not, reset them
   def verify_ldap_roles
-    # find all roles that ldap created
-    ldap_roles = self.roles_users.select { |r| r.ldap }
-    # get the group list for those roles
-    group_list = ldap_roles.collect { |r| r.role_id }.uniq
-    # get the roles that match those ldap roles
-    role_groups = LdapGroupRole.where(:role_id => group_list)
-    # and then make an array of all of the ldap groups in that list
-    ldap_groups = role_groups.collect { |r| r.ldap_group } 
+
+    # get list of ldap_groups bound to roles the user is in
+    ldap_groups = LdapGroupRole.
+        joins(:role => :roles_users).
+        where(:roles_users => { :ldap => true, :user_id => id }).
+        select(:ldap_group).
+        uniq.
+        map(&:ldap_group)
+
     # make sure the user is still in those groups
     # this operation is inexpensive compared to getting a new group list
-    if !Ldap.is_in_groups(self.username, group_list)
+    if !Ldap.is_in_groups(self.username, ldap_groups)
       # if user is not in these groups, flush their roles
       # this is expensive
       set_ldap_roles
