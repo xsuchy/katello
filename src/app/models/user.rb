@@ -238,7 +238,6 @@ class User < ActiveRecord::Base
   #
   # This method is called by every protected controller.
   def allowed_to?(verbs, resource_type, tags = nil, org = nil, any_tags = false)
-    verify_ldap_roles if AppConfig.ldap_roles
     tags = [] if tags.nil?
     tags = [tags] unless tags.is_a? Array
     raise  ArgumentError, "Tags need to be integers - #{tags} are not."  if
