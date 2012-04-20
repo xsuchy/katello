@@ -513,7 +513,8 @@ class User < ActiveRecord::Base
   end
 
   def clear_existing_ldap_roles
-    self.roles_users = self.roles_users.select {|r| !r.ldap}
+    self.roles = self.roles_users.select { |r| !r.ldap }.map { |r| r.role }
+    self.save
   end
 
   protected
