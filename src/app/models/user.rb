@@ -503,10 +503,12 @@ class User < ActiveRecord::Base
     groups = Ldap.ldap_groups(self.username)
     groups.each do |group|
       # find corresponding 
-      group_role = LdapGroupRole.find_by_ldap_group(group)
-      if group_role
-        role_user = RolesUser.new(:role => group_role.role, :user => self, :ldap => true)
-        self.roles_users << role_user unless self.roles.include?(group_role.role)
+      group_roles = LdapGroupRole.find_all_by_ldap_group(group)
+      group_roles.each do |group_role|
+        if group_role
+          role_user = RolesUser.new(:role => group_role.role, :user => self, :ldap => true)
+          self.roles_users << role_user unless self.roles.include?(group_role.role)
+        end
       end
     end
     self.save
@@ -514,7 +516,6 @@ class User < ActiveRecord::Base
 
   def clear_existing_ldap_roles
     self.roles = self.roles_users.select { |r| !r.ldap }.map { |r| r.role }
-    self.save
   end
 
   protected
