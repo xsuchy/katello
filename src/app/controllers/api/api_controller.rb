@@ -95,7 +95,7 @@ class Api::ApiController < ActionController::Base
 
    def verify_ldap
     u = current_user
-    u.verify_ldap_roles if (AppConfig.ldap_roles && u != nil)
+    u.set_ldap_roles if (AppConfig.ldap_roles && u != nil)
   end
 
   def require_user
