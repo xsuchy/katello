@@ -80,6 +80,11 @@ class Api::UsersController < Api::ApiController
     render :json => @user.roles.non_self.to_json
   end
 
+  def sync_ldap_roles
+    User.all.each { |user| user.set_ldap_roles }
+    render :text => _("Roles for all users were synchronised with LDAP groups"), :status => 200
+  end 
+
   def add_role
     role = Role.find(params[:role_id])
     @user.roles << role
