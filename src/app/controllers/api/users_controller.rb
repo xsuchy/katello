@@ -76,6 +76,7 @@ class Api::UsersController < Api::ApiController
   end
 
   def list_roles
+    @user.set_ldap_roles if AppConfig.ldap_roles
     render :json => @user.roles.non_self.to_json
   end
 
