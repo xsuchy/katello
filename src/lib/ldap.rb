@@ -70,9 +70,10 @@ module Ldap
     # returns true if owner is in ALL of the groups if all=true, otherwise
     # returns true if owner is in ANY of the groups
     def is_in_groups(uid, gids = [], all=false)
+      return true if gids.empty?
       filter = Net::LDAP::Filter.eq("memberUid", uid)
       treebase = @group_base
-      return nil if treebase == nil || gids.empty?
+      raise _("group_base was not set in katello.yml") if not treebase
       group_filters = []
       matches = 0
       # we need a new filter for each group cn
