@@ -55,7 +55,7 @@ class Role < ActiveRecord::Base
 
   def add_ldap_group(group_name)
     self.ldap_group_roles.create!(:ldap_group => group_name)
-    #self.ldap = true
+    User.all.each { |user| user.set_ldap_roles }
     self.save
   end
 
@@ -63,7 +63,7 @@ class Role < ActiveRecord::Base
     ldap_group = self.ldap_group_roles.where(:ldap_group => group_name).first
     raise Errors::NotFound.new(_("LDAP group '%s' associated to role '%s' was not found.") % [group_name, self.name]) unless ldap_group
     ldap_group.destroy
-    #self.ldap = false if self.ldap_group_roles.empty?
+    self.users.each { |user| user.set_ldap_roles }
   end
 
 
