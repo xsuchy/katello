@@ -130,7 +130,6 @@ class User < ActiveRecord::Base
 
   # support for session (thread-local) variables
   include Katello::ThreadSession::UserModel
-  include Ldap
 
   def self.authenticate!(username, password)
     u = User.where({:username => username}).first
@@ -145,7 +144,7 @@ class User < ActiveRecord::Base
   
   # if the user authenticates with LDAP, log them in
   def self.authenticate_using_ldap!(username, password)
-    if valid_ldap_authentication? username, password
+    if Ldap.valid_ldap_authentication? username, password
       u = User.where({:username => username}).first || create_ldap_user!(username)
     else
       nil
@@ -279,7 +278,7 @@ class User < ActiveRecord::Base
     puts "Checking ldap roles for #{ldap_groups}"
     # make sure the user is still in those groups
     # this operation is inexpensive compared to getting a new group list
-    if !is_in_groups(self.username, ldap_groups)
+    if !Ldap.is_in_groups(self.username, ldap_groups)
       # if user is not in these groups, flush their roles
       # this is expensive
       set_ldap_roles
@@ -292,7 +291,7 @@ class User < ActiveRecord::Base
     # first, delete existing ldap roles
     clear_existing_ldap_roles
     # load groups from ldap
-    groups = ldap_groups(self.username)
+    groups = Ldap.ldap_groups(self.username)
     groups.each do |group|
       # find corresponding 
       group_roles = LdapGroupRole.find_all_by_ldap_group(group)
