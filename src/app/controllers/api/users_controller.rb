@@ -37,12 +37,13 @@ class Api::UsersController < Api::ApiController
        :add_role => edit_test,
        :remove_role => edit_test,
        :list_roles => edit_test,
-       :report => index_test
+       :report => index_test,
+       :sync_ldap_roles => create_test, # expensive operation, set high perms to avoid DOS
      }
   end
 
   def param_rules
-    {
+    { 
       :create => [:username, :password, :email, :disabled],
       :update => {:user => [:password, :email, :disabled]}
     }
