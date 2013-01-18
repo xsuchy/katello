@@ -112,9 +112,16 @@ BuildRequires:  rubygem(jammit)
 BuildRequires:  rubygem(chunky_png)
 BuildRequires:  rubygem(fssm) >= 0.2.7
 BuildRequires:  rubygem(compass) >= 0.11.5
+%if 0%{?fedora} && 0%{?fedora} >= 18
+BuildRequires:  rubygem(compass-rails) >= 0.11.5
+%endif
 BuildRequires:  rubygem(compass-960-plugin) >= 0.10.4
 BuildRequires:  java >= 0:1.6.0
 BuildRequires:  rubygem(alchemy) >= 1.0.0
+# workaround for BZ 901540
+%if 0%{?fedora} && 0%{?fedora} >= 18
+BuildRequires:       rubygem(sass-rails) rubygem(actionpack) rubygem(rails)
+%endif
 
 # we require this to be able to build api-docs
 BuildRequires:       rubygem(rails) >= 3.0.10
@@ -374,7 +381,14 @@ fi
     #compile SASS files
     echo Compiling SASS files...
     cp config/katello.template.yml config/katello.yml
-    compass compile
+
+    mv bundler.d bundler.d.bak
+    mkdir bundler.d
+    cp bundler.d.bak/build.rb bundler.d/
+    compass compile --trace
+    rm -rf bundler.d
+    mv bundler.d.bak bundler.d
+
     rm config/katello.yml
 
     #generate Rails JS/CSS/... assets
